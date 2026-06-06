@@ -5,267 +5,550 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GymDesk - Member App Preview</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Inter', system-ui, sans-serif; background: #f3f4f6; display: flex; justify-content: center; align-items: flex-start; padding: 20px; min-height: 100vh; }
-  .phone { width: 375px; min-height: 720px; background: #fff; border-radius: 32px; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.15); border: 8px solid #1a1a1a; position: relative; }
-  .status-bar { background: #1a1a1a; color: #fff; padding: 8px 20px; font-size: 12px; display: flex; justify-content: space-between; font-weight: 500; }
-  .screen { display: none; padding: 20px; min-height: 580px; overflow-y: auto; background: #f9fafb; }
-  .screen.active { display: block; }
-  .tab-bar { display: flex; justify-content: space-around; background: #fff; border-top: 1px solid #e5e7eb; padding: 8px 0 12px; position: sticky; bottom: 0; }
-  .tab { text-align: center; cursor: pointer; padding: 4px 8px; }
-  .tab .icon { font-size: 18px; margin-bottom: 2px; }
-  .tab .label { font-size: 9px; font-weight: 600; color: #6b7280; }
-  .tab.active .label { color: #2563eb; }
-  .header { text-align: center; padding: 16px 0 12px; }
-  .header h1 { font-size: 18px; font-weight: 700; color: #111; }
-  .card { background: #fff; border-radius: 14px; padding: 18px; margin-bottom: 14px; border: 1px solid #e5e7eb; }
-  .btn { display: block; width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; text-align: center; }
-  .btn-blue { background: #2563eb; color: #fff; }
-  .btn-red { background: #dc2626; color: #fff; }
-  .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-  .badge-green { background: #dcfce7; color: #16a34a; }
-  .badge-red { background: #fee2e2; color: #dc2626; }
-  .badge-yellow { background: #fef9c3; color: #a16207; }
-  .badge-blue { background: #dbeafe; color: #1d4ed8; }
-
-  /* Green success screen */
-  .success-screen { background: #16a34a; min-height: 580px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; text-align: center; }
-  .success-screen .emoji { font-size: 64px; margin-bottom: 16px; }
-  .success-screen h2 { font-size: 32px; font-weight: 800; margin-bottom: 8px; }
-
-  /* Red blocked screen */
-  .blocked-screen { background: #dc2626; min-height: 580px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; text-align: center; }
-  .blocked-screen .emoji { font-size: 64px; margin-bottom: 16px; }
-  .blocked-screen h2 { font-size: 32px; font-weight: 800; margin-bottom: 8px; }
-
-  .progress-bar { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin: 8px 0; }
-  .progress-fill { height: 100%; background: #2563eb; border-radius: 4px; }
-
-  .perk-card { background: #fff; border-radius: 14px; padding: 14px; margin-bottom: 10px; border: 1px solid #e5e7eb; }
-  .perk-locked { opacity: 0.5; }
-
-  .vote-option { background: #f9fafb; border-radius: 12px; padding: 12px; margin-bottom: 8px; border: 1px solid #e5e7eb; cursor: pointer; }
-  .vote-option.voted { border-color: #2563eb; background: #eff6ff; }
-  .vote-bar { height: 6px; background: #e5e7eb; border-radius: 3px; margin-top: 8px; overflow: hidden; }
-  .vote-fill { height: 100%; border-radius: 3px; }
-  .vote-fill.leading { background: #2563eb; }
-  .vote-fill.normal { background: #93c5fd; }
-
-  .step { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .step-num { width: 24px; height: 24px; border-radius: 12px; background: #eff6ff; color: #2563eb; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-
-  .announcement { background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 12px; border: 1px solid #e5e7eb; }
-
-  .closure-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f3f4f6; }
-
-  .multi-phone { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; justify-content: center; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',system-ui,sans-serif; background:#1a1a2e; display:flex; justify-content:center; align-items:flex-start; padding:30px 20px; min-height:100vh; }
+  .wrapper { text-align:center; }
+  .wrapper > h1 { color:#fff; font-size:24px; margin-bottom:6px; }
+  .wrapper > p { color:rgba(255,255,255,0.5); font-size:14px; margin-bottom:24px; }
+  .phone { width:375px; height:740px; background:#fff; border-radius:40px; overflow:hidden; box-shadow:0 25px 80px rgba(0,0,0,0.4); border:8px solid #111; position:relative; display:flex; flex-direction:column; margin:0 auto; }
+  .status-bar { background:#111; color:#fff; padding:10px 24px 8px; font-size:12px; display:flex; justify-content:space-between; font-weight:600; flex-shrink:0; }
+  .screen { display:none; flex:1; overflow-y:auto; background:#f9fafb; padding:16px 20px 20px; }
+  .screen.active { display:block; }
+  .fullscreen { display:none; position:absolute; inset:0; top:38px; z-index:10; }
+  .fullscreen.active { display:flex; }
+  .tab-bar { display:flex; justify-content:space-around; background:#fff; border-top:1px solid #e5e7eb; padding:6px 0 14px; flex-shrink:0; z-index:5; }
+  .tab { text-align:center; cursor:pointer; padding:4px 6px; border-radius:8px; transition:all 0.2s; min-width:44px; }
+  .tab:hover { background:#f3f4f6; }
+  .tab .icon { font-size:20px; margin-bottom:1px; }
+  .tab .label { font-size:9px; font-weight:700; color:#9ca3af; transition:color 0.2s; }
+  .tab.active .label { color:#2563eb; }
+  .header { text-align:center; padding:12px 0 10px; }
+  .header h1 { font-size:20px; font-weight:800; color:#111; }
+  .header p { font-size:13px; color:#9ca3af; margin-top:2px; }
+  .card { background:#fff; border-radius:16px; padding:18px; margin-bottom:14px; border:1px solid #e5e7eb; }
+  .btn { display:block; width:100%; padding:14px; border-radius:14px; border:none; font-size:16px; font-weight:700; cursor:pointer; text-align:center; transition:all 0.2s; }
+  .btn:active { transform:scale(0.97); }
+  .btn-blue { background:#2563eb; color:#fff; }
+  .btn-blue:hover { background:#1d4ed8; }
+  .badge { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600; }
+  .badge-green { background:#dcfce7; color:#16a34a; }
+  .badge-red { background:#fee2e2; color:#dc2626; }
+  .badge-yellow { background:#fef9c3; color:#a16207; }
+  .badge-blue { background:#dbeafe; color:#1d4ed8; }
+  .progress-bar { height:8px; background:#e5e7eb; border-radius:4px; overflow:hidden; }
+  .progress-fill { height:100%; border-radius:4px; transition:width 0.5s ease; }
+  .perk-card { background:#fff; border-radius:14px; padding:14px; margin-bottom:10px; border:1px solid #e5e7eb; transition:all 0.2s; }
+  .perk-card:not(.perk-locked):hover { border-color:#86efac; }
+  .perk-locked { opacity:0.5; }
+  .vote-option { background:#f9fafb; border-radius:12px; padding:12px; margin-bottom:8px; border:2px solid #e5e7eb; cursor:pointer; transition:all 0.2s; }
+  .vote-option:hover { border-color:#93c5fd; }
+  .vote-option.voted { border-color:#2563eb; background:#eff6ff; }
+  .vote-bar { height:6px; background:#e5e7eb; border-radius:3px; margin-top:8px; overflow:hidden; }
+  .vote-fill { height:100%; border-radius:3px; transition:width 0.5s ease; }
+  .announcement { background:#fff; border-radius:14px; padding:16px; margin-bottom:12px; border:1px solid #e5e7eb; }
+  .closure-row { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #f3f4f6; }
+  .step { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .step-num { width:24px; height:24px; border-radius:12px; background:#eff6ff; color:#2563eb; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  @keyframes scanLine { 0%{top:10%} 50%{top:85%} 100%{top:10%} }
+  .scan-line { position:absolute; left:10%; right:10%; height:2px; background:#2563eb; box-shadow:0 0 12px #2563eb; animation:scanLine 2s ease-in-out infinite; }
+  @keyframes fadeIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+  .fade-in { animation:fadeIn 0.3s ease; }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+  .pulse { animation:pulse 1.5s ease-in-out infinite; }
+  .toast-app { position:absolute; top:48px; left:12px; right:12px; z-index:20; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:12px 16px; box-shadow:0 8px 24px rgba(0,0,0,0.15); display:none; }
+  .toast-app.show { display:flex; animation:fadeIn 0.3s ease; }
+  input,textarea,select { font-family:inherit; }
 </style>
 </head>
 <body>
 
-<div class="multi-phone">
+<div class="wrapper">
+  <h1>🏋️ GymDesk Member App</h1>
+  <p>Interactive preview — tap everything, it all works!</p>
 
-<!-- PHONE 1: Main screens -->
-<div>
-  <p style="text-align:center; font-weight:700; color:#374151; margin-bottom:12px; font-size:14px;">Member App — Main Screens</p>
-  <div class="phone">
-    <div class="status-bar"><span>9:41 AM</span><span>GymDesk</span><span>100%</span></div>
+  <div class="phone" id="phone">
+    <div class="status-bar"><span>9:41 AM</span><span>GymDesk</span><span>🔋 100%</span></div>
 
-    <!-- HOME -->
-    <div id="s-home" class="screen active">
-      <div class="header"><h1>Welcome, Rahul! 👋</h1></div>
-      <div class="card" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: none;">
-        <p style="font-size:13px; opacity:0.8;">Next Payment Due</p>
-        <p style="font-size:28px; font-weight:800; margin: 6px 0;">₹1,500</p>
-        <p style="font-size:13px; opacity:0.8;">Due: 15 June 2026</p>
-        <button class="btn" style="background:rgba(255,255,255,0.2); color:#fff; margin-top:14px;">Pay Now via Razorpay</button>
+    <!-- App Toast -->
+    <div id="app-toast" class="toast-app" onclick="this.classList.remove('show')">
+      <span class="text-lg mr-3" id="app-toast-icon">✅</span>
+      <div style="text-align:left"><p style="font-size:13px;font-weight:700;color:#111" id="app-toast-title"></p><p style="font-size:11px;color:#6b7280" id="app-toast-msg"></p></div>
+    </div>
+
+    <!-- ===== LOGIN SCREEN ===== -->
+    <div id="s-login" class="screen active" style="display:flex;flex-direction:column;justify-content:center;background:linear-gradient(135deg,#1e3a5f,#2563eb);">
+      <div style="text-align:center;padding:0 20px;">
+        <div style="font-size:48px;margin-bottom:12px;">🏋️</div>
+        <h1 style="font-size:28px;font-weight:800;color:#fff;margin-bottom:4px;">GymDesk</h1>
+        <p style="font-size:14px;color:rgba(255,255,255,0.6);margin-bottom:32px;">Sign in to your account</p>
+        <div style="text-align:left;margin-bottom:12px;">
+          <label style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.8);display:block;margin-bottom:6px;">Email</label>
+          <input id="login-email" type="email" value="rahul@email.com" style="width:100%;padding:12px 14px;border-radius:12px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:#fff;font-size:15px;outline:none;" onfocus="this.style.borderColor='rgba(255,255,255,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
+        </div>
+        <div style="text-align:left;margin-bottom:8px;">
+          <label style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.8);display:block;margin-bottom:6px;">Password</label>
+          <input id="login-pass" type="password" value="password123" style="width:100%;padding:12px 14px;border-radius:12px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:#fff;font-size:15px;outline:none;" onfocus="this.style.borderColor='rgba(255,255,255,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
+        </div>
+        <p id="login-error" style="font-size:12px;color:#fca5a5;min-height:18px;margin-bottom:8px;"></p>
+        <button onclick="doLogin()" style="width:100%;padding:14px;border-radius:14px;border:none;background:#fff;color:#2563eb;font-size:16px;font-weight:800;cursor:pointer;margin-bottom:12px;transition:all 0.2s;" onmouseover="this.style.background='#f0f9ff'" onmouseout="this.style.background='#fff'">Sign In</button>
+        <p id="login-forgot" style="font-size:13px;color:rgba(255,255,255,0.5);cursor:pointer;display:none;" onclick="resetPassword()">Forgot password?</p>
       </div>
-      <p style="font-size:14px; font-weight:700; color:#111; margin-bottom:10px;">Payment History</p>
-      <div class="card" style="padding:12px 16px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-          <div><p style="font-size:14px; font-weight:600; color:#111;">₹1,500</p><p style="font-size:12px; color:#6b7280;">15 May 2026</p></div>
-          <span class="badge badge-green">Paid</span>
+    </div>
+
+    <!-- ===== HOME ===== -->
+    <div id="s-home" class="screen">
+      <div class="header"><h1>Welcome, Rahul! 👋</h1><p>Your fitness dashboard</p></div>
+      <div class="card" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:none;box-shadow:0 8px 24px rgba(37,99,235,0.3);">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div><p style="font-size:12px;opacity:0.7;">Next Payment Due</p><p style="font-size:32px;font-weight:800;margin:4px 0;">₹1,500</p><p style="font-size:13px;opacity:0.7;">Due: 15 June 2026</p></div>
+          <div style="text-align:right;"><span class="badge" style="background:rgba(255,255,255,0.2);color:#fff;">Monthly Plan</span></div>
         </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-          <div><p style="font-size:14px; font-weight:600; color:#111;">₹1,500</p><p style="font-size:12px; color:#6b7280;">15 Apr 2026</p></div>
-          <span class="badge badge-green">Paid</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <div><p style="font-size:14px; font-weight:600; color:#111;">₹1,500</p><p style="font-size:12px; color:#6b7280;">15 Mar 2026</p></div>
-          <span class="badge badge-green">Paid</span>
+        <button class="btn" style="background:rgba(255,255,255,0.2);color:#fff;margin-top:14px;font-size:15px;" onclick="simulatePayment()">💳 Pay Now via Razorpay</button>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:14px;">
+        <div class="card" style="flex:1;text-align:center;padding:14px;margin-bottom:0;"><p style="font-size:24px;font-weight:800;color:#2563eb;">12</p><p style="font-size:11px;color:#6b7280;font-weight:600;">Day Streak 🔥</p></div>
+        <div class="card" style="flex:1;text-align:center;padding:14px;margin-bottom:0;"><p style="font-size:24px;font-weight:800;color:#16a34a;">18</p><p style="font-size:11px;color:#6b7280;font-weight:600;">This Month</p></div>
+        <div class="card" style="flex:1;text-align:center;padding:14px;margin-bottom:0;"><p style="font-size:24px;font-weight:800;color:#f59e0b;">3</p><p style="font-size:11px;color:#6b7280;font-weight:600;">Perks 🎁</p></div>
+      </div>
+      <p style="font-size:15px;font-weight:700;color:#111;margin-bottom:10px;">Payment History</p>
+      <div class="card" style="padding:0;">
+        <div id="payment-history">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #f3f4f6;"><div><p style="font-size:14px;font-weight:600;color:#111;">₹1,500</p><p style="font-size:12px;color:#6b7280;">15 May 2026</p></div><span class="badge badge-green">Paid ✓</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #f3f4f6;"><div><p style="font-size:14px;font-weight:600;color:#111;">₹1,500</p><p style="font-size:12px;color:#6b7280;">15 Apr 2026</p></div><span class="badge badge-green">Paid ✓</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;"><div><p style="font-size:14px;font-weight:600;color:#111;">₹1,500</p><p style="font-size:12px;color:#6b7280;">15 Mar 2026</p></div><span class="badge badge-green">Paid ✓</span></div>
         </div>
       </div>
     </div>
 
-    <!-- QR CHECK-IN -->
+    <!-- ===== QR CHECK-IN ===== -->
     <div id="s-qr" class="screen">
-      <div class="header"><h1>Scan to Check In</h1><p style="font-size:13px; color:#6b7280; margin-top:4px;">Scan the QR at the front desk</p></div>
-      <div style="background:#2563eb; border-radius:20px; padding:28px; text-align:center; margin-bottom:18px; box-shadow: 0 8px 24px rgba(37,99,235,0.3);">
-        <div style="font-size:32px; margin-bottom:8px;">📷</div>
-        <p style="font-size:22px; font-weight:800; color:#fff;">Open Scanner</p>
-        <p style="font-size:13px; color:rgba(255,255,255,0.7); margin-top:6px;">Tap to scan front desk QR code</p>
+      <div class="header"><h1>Scan to Check In</h1><p>Scan the QR at the front desk</p></div>
+      <div onclick="startScan()" style="background:linear-gradient(135deg,#2563eb,#1e40af);border-radius:20px;padding:32px;text-align:center;margin-bottom:18px;box-shadow:0 8px 24px rgba(37,99,235,0.3);cursor:pointer;transition:all 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+        <div style="font-size:40px;margin-bottom:8px;">📷</div>
+        <p style="font-size:24px;font-weight:800;color:#fff;">Open Scanner</p>
+        <p style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:6px;">Tap to scan front desk QR code</p>
       </div>
       <div class="card" style="text-align:center;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <p style="font-size:14px; font-weight:600; color:#374151;">Attendance Streak</p>
-          <p style="font-size:20px; font-weight:800; color:#111;">12 🔥</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <p style="font-size:14px;font-weight:700;color:#374151;">Attendance Streak</p>
+          <p style="font-size:22px;font-weight:800;color:#111;" id="streak-display">12 🔥</p>
         </div>
-        <div class="progress-bar"><div class="progress-fill" style="width:80%"></div></div>
-        <p style="font-size:12px; color:#9ca3af;">3 more days to unlock partner discounts</p>
+        <div class="progress-bar"><div class="progress-fill" style="width:80%;background:linear-gradient(90deg,#2563eb,#7c3aed);" id="streak-bar"></div></div>
+        <p style="font-size:12px;color:#9ca3af;margin-top:6px;" id="streak-msg">3 more days to unlock partner discounts</p>
       </div>
       <div class="card">
-        <p style="font-size:14px; font-weight:700; color:#374151; margin-bottom:10px;">How it works</p>
-        <div class="step"><div class="step-num">1</div><p style="font-size:13px; color:#6b7280;">Walk up to the front desk</p></div>
-        <div class="step"><div class="step-num">2</div><p style="font-size:13px; color:#6b7280;">Tap "Open Scanner" above</p></div>
-        <div class="step"><div class="step-num">3</div><p style="font-size:13px; color:#6b7280;">Point at the printed QR standee</p></div>
-        <div class="step"><div class="step-num">4</div><p style="font-size:13px; color:#6b7280;">Green = you're in! Receptionist gets a ping.</p></div>
+        <p style="font-size:14px;font-weight:700;color:#374151;margin-bottom:12px;">How it works</p>
+        <div class="step"><div class="step-num">1</div><p style="font-size:13px;color:#6b7280;">Walk up to the front desk</p></div>
+        <div class="step"><div class="step-num">2</div><p style="font-size:13px;color:#6b7280;">Tap "Open Scanner" above</p></div>
+        <div class="step"><div class="step-num">3</div><p style="font-size:13px;color:#6b7280;">Point at the printed QR standee</p></div>
+        <div class="step"><div class="step-num">4</div><p style="font-size:13px;color:#6b7280;">Green = you're in! Receptionist gets a ping.</p></div>
       </div>
     </div>
 
-    <!-- PERKS -->
-    <div id="s-perks" class="screen">
-      <div class="header"><h1>Rewards & Perks</h1></div>
-      <div class="card" style="background:#eff6ff; border-color:#bfdbfe; text-align:center;">
-        <p style="font-size:14px; font-weight:600; color:#1d4ed8; margin-bottom:10px;">Your Referral Code</p>
-        <div style="background:#fff; display:inline-block; padding:10px 24px; border-radius:10px; border:2px dashed #2563eb;">
-          <p style="font-size:20px; font-weight:800; color:#1e40af; letter-spacing:2px;">RAHUL-GYM-2K26</p>
-        </div>
-        <p style="font-size:12px; color:#3b82f6; margin-top:10px;">Share with friends — they sign up, you get 10% off!</p>
+    <!-- ===== SCANNER FULLSCREEN ===== -->
+    <div id="scanner-screen" class="fullscreen" style="background:#000;flex-direction:column;align-items:center;justify-content:center;">
+      <div style="position:relative;width:250px;height:250px;margin-bottom:24px;">
+        <div style="position:absolute;top:0;left:0;width:40px;height:40px;border-left:4px solid #2563eb;border-top:4px solid #2563eb;border-radius:4px 0 0 0;"></div>
+        <div style="position:absolute;top:0;right:0;width:40px;height:40px;border-right:4px solid #2563eb;border-top:4px solid #2563eb;border-radius:0 4px 0 0;"></div>
+        <div style="position:absolute;bottom:0;left:0;width:40px;height:40px;border-left:4px solid #2563eb;border-bottom:4px solid #2563eb;border-radius:0 0 0 4px;"></div>
+        <div style="position:absolute;bottom:0;right:0;width:40px;height:40px;border-right:4px solid #2563eb;border-bottom:4px solid #2563eb;border-radius:0 0 4px 0;"></div>
+        <div class="scan-line"></div>
       </div>
-      <p style="font-size:15px; font-weight:700; color:#111; margin-bottom:10px;">Local Partner Perks</p>
-      <div class="perk-card">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-          <div><p style="font-size:15px; font-weight:700; color:#111;">Green Leaf Cafe</p><p style="font-size:12px; color:#6b7280;">Food & Drinks</p></div>
-          <span class="badge badge-green">Unlocked</span>
-        </div>
-        <p style="font-size:14px; color:#16a34a; font-weight:600; margin-top:6px;">10% off smoothies & salads</p>
-        <div style="margin-top:8px; background:#f0fdf4; padding:8px; border-radius:8px; text-align:center;"><p style="font-size:12px; color:#16a34a; font-weight:500;">Show QR at store for discount</p></div>
+      <p style="color:#fff;font-size:16px;font-weight:600;">Scanning...</p>
+      <p style="color:rgba(255,255,255,0.5);font-size:13px;margin-top:4px;">Point camera at the front desk QR</p>
+      <button onclick="cancelScan()" style="margin-top:24px;background:rgba(255,255,255,0.15);color:#fff;border:none;padding:10px 32px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;">Cancel</button>
+    </div>
+
+    <!-- ===== SUCCESS FULLSCREEN ===== -->
+    <div id="success-screen" class="fullscreen" style="background:#16a34a;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;">
+      <div style="font-size:72px;margin-bottom:16px;" class="pulse">✅</div>
+      <h2 style="font-size:36px;font-weight:800;margin-bottom:8px;">Checked In!</h2>
+      <p style="font-size:16px;opacity:0.85;margin-bottom:6px;">Welcome, Rahul! The receptionist has been notified.</p>
+      <p style="font-size:14px;opacity:0.5;margin-bottom:20px;" id="checkin-time"></p>
+      <div style="background:rgba(255,255,255,0.2);padding:12px 24px;border-radius:20px;margin-bottom:30px;">
+        <p style="font-size:18px;font-weight:700;" id="checkin-streak">13 day streak 🔥</p>
       </div>
-      <div class="perk-card">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-          <div><p style="font-size:15px; font-weight:700; color:#111;">SportZone Apparel</p><p style="font-size:12px; color:#6b7280;">Sportswear</p></div>
-          <span class="badge badge-green">Unlocked</span>
-        </div>
-        <p style="font-size:14px; color:#16a34a; font-weight:600; margin-top:6px;">15% off gym wear</p>
+      <button onclick="closeFullscreen()" style="background:rgba(255,255,255,0.25);color:#fff;border:none;padding:14px 48px;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.25)'">Done</button>
+    </div>
+
+    <!-- ===== BLOCKED FULLSCREEN ===== -->
+    <div id="blocked-screen" class="fullscreen" style="background:#dc2626;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;">
+      <div style="font-size:72px;margin-bottom:16px;" class="pulse">🚫</div>
+      <h2 style="font-size:36px;font-weight:800;margin-bottom:12px;">Entry Blocked</h2>
+      <p style="font-size:24px;font-weight:700;opacity:0.9;margin-bottom:12px;">₹1,500 Overdue</p>
+      <p style="font-size:15px;opacity:0.8;margin-bottom:24px;line-height:1.6;max-width:280px;">Your payment is past the grace period. Please clear your dues to check in.</p>
+      <button onclick="simulatePayment();closeFullscreen();" style="background:#fff;color:#dc2626;border:none;padding:14px 48px;border-radius:14px;font-size:18px;font-weight:800;cursor:pointer;margin-bottom:16px;transition:all 0.2s;">Pay Now</button>
+      <p onclick="closeFullscreen()" style="opacity:0.7;font-size:16px;cursor:pointer;">Go Back</p>
+    </div>
+
+    <!-- ===== PAYMENT PROCESSING FULLSCREEN ===== -->
+    <div id="payment-screen" class="fullscreen" style="background:linear-gradient(135deg,#1e3a5f,#2563eb);flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;">
+      <div id="pay-step-1" style="display:block;">
+        <div style="font-size:48px;margin-bottom:16px;">💳</div>
+        <h2 style="font-size:24px;font-weight:800;margin-bottom:8px;">Razorpay Checkout</h2>
+        <p style="font-size:16px;opacity:0.7;margin-bottom:24px;">Processing ₹1,500...</p>
+        <div style="width:200px;height:4px;background:rgba(255,255,255,0.2);border-radius:2px;margin:0 auto;overflow:hidden;"><div style="width:60%;height:100%;background:#fff;border-radius:2px;animation:loading 1.5s ease-in-out infinite;"></div></div>
+        <style>@keyframes loading{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}</style>
       </div>
-      <div class="perk-card perk-locked">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-          <div><p style="font-size:15px; font-weight:700; color:#111;">PhysioFlex Clinic</p><p style="font-size:12px; color:#6b7280;">Health</p></div>
-          <span class="badge" style="background:#f3f4f6; color:#6b7280;">🔒 Locked</span>
-        </div>
-        <p style="font-size:14px; color:#6b7280; font-weight:600; margin-top:6px;">Free first consultation</p>
+      <div id="pay-step-2" style="display:none;">
+        <div style="font-size:72px;margin-bottom:16px;" class="pulse">✅</div>
+        <h2 style="font-size:28px;font-weight:800;margin-bottom:8px;">Payment Successful!</h2>
+        <p style="font-size:16px;opacity:0.8;margin-bottom:4px;">₹1,500 paid via UPI</p>
+        <p style="font-size:14px;opacity:0.5;margin-bottom:24px;">Txn: GD-2026-06-06-XXXX</p>
+        <button onclick="closeFullscreen()" style="background:rgba(255,255,255,0.25);color:#fff;border:none;padding:14px 48px;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;">Done</button>
       </div>
     </div>
 
-    <!-- VOTE -->
-    <div id="s-vote" class="screen">
-      <div class="header"><h1>Gym Wishlist 🗳️</h1><p style="font-size:13px; color:#6b7280; margin-top:4px;">Vote on what matters to you</p></div>
-      <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
-          <p style="font-size:15px; font-weight:700; color:#111; flex:1; margin-right:8px;">Which equipment should we buy next?</p>
-          <span class="badge badge-green">Active</span>
-        </div>
-        <p style="font-size:13px; color:#6b7280; margin-bottom:12px;">Budget: ₹80,000</p>
-        <div class="vote-option"><p style="font-size:14px; font-weight:600; color:#374151;">Leg Press Machine</p><p style="font-size:12px; color:#9ca3af;">Heavy-duty 45-degree</p></div>
-        <div class="vote-option"><p style="font-size:14px; font-weight:600; color:#374151;">Stairmaster</p><p style="font-size:12px; color:#9ca3af;">Commercial stair climber</p></div>
-        <div class="vote-option"><p style="font-size:14px; font-weight:600; color:#374151;">Dumbbell Set (5-50kg)</p><p style="font-size:12px; color:#9ca3af;">Full rubber hex rack</p></div>
-        <p style="font-size:12px; color:#9ca3af; margin-top:10px; text-align:center;">Tap an option to vote · Ends 15 Jun</p>
-      </div>
-      <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
-          <p style="font-size:15px; font-weight:700; color:#111;">Preferred new batch timing?</p>
-          <span class="badge badge-green">Active</span>
-        </div>
-        <div class="vote-option voted">
-          <div style="display:flex; justify-content:space-between;"><p style="font-size:14px; font-weight:600; color:#374151;">🏆 6:30 PM - 8:00 PM (Your vote)</p><p style="font-size:14px; font-weight:700; color:#2563eb;">54%</p></div>
-          <div class="vote-bar"><div class="vote-fill leading" style="width:54%"></div></div>
-        </div>
-        <div class="vote-option">
-          <div style="display:flex; justify-content:space-between;"><p style="font-size:14px; color:#6b7280;">5:00 PM - 6:30 PM</p><p style="font-size:14px; color:#6b7280;">28%</p></div>
-          <div class="vote-bar"><div class="vote-fill normal" style="width:28%"></div></div>
-        </div>
-        <div class="vote-option">
-          <div style="display:flex; justify-content:space-between;"><p style="font-size:14px; color:#6b7280;">8:00 PM - 9:30 PM</p><p style="font-size:14px; color:#6b7280;">18%</p></div>
-          <div class="vote-bar"><div class="vote-fill normal" style="width:18%"></div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- NEWS -->
+    <!-- ===== NEWS ===== -->
     <div id="s-news" class="screen">
       <div class="header"><h1>Announcements 📢</h1></div>
-      <div class="announcement"><p style="font-size:15px; font-weight:700; color:#111;">New Batch Timings</p><p style="font-size:12px; color:#6b7280; margin:4px 0 8px;">Coach Rajesh · 28 May</p><p style="font-size:14px; color:#374151; line-height:1.5;">Starting June 1st, we are adding a new morning batch from 5:30 AM to 7:00 AM. Register at the front desk if interested.</p></div>
-      <div class="announcement"><p style="font-size:15px; font-weight:700; color:#111;">AC Servicing This Saturday</p><p style="font-size:12px; color:#6b7280; margin:4px 0 8px;">Admin · 25 May</p><p style="font-size:14px; color:#374151; line-height:1.5;">The gym will close at 2 PM on Saturday for AC maintenance. Morning batches will run as usual.</p></div>
+      <div id="news-list">
+        <div class="announcement"><p style="font-size:15px;font-weight:700;color:#111;">New Batch Timings</p><p style="font-size:12px;color:#6b7280;margin:4px 0 8px;">Coach Rajesh · 28 May</p><p style="font-size:14px;color:#374151;line-height:1.5;">Starting June 1st, we are adding a new morning batch from 5:30 AM to 7:00 AM. Register at the front desk if interested.</p></div>
+        <div class="announcement"><p style="font-size:15px;font-weight:700;color:#111;">AC Servicing This Saturday</p><p style="font-size:12px;color:#6b7280;margin:4px 0 8px;">Admin · 25 May</p><p style="font-size:14px;color:#374151;line-height:1.5;">The gym will close at 2 PM on Saturday for AC maintenance. Morning batches will run as usual.</p></div>
+        <div class="announcement"><p style="font-size:15px;font-weight:700;color:#111;">Summer Challenge!</p><p style="font-size:12px;color:#6b7280;margin:4px 0 8px;">Coach Rajesh · 20 May</p><p style="font-size:14px;color:#374151;line-height:1.5;">Join our 30-day summer fitness challenge! Track your workouts, compete with friends, and win prizes.</p></div>
+      </div>
     </div>
 
-    <!-- SCHEDULE -->
-    <div id="s-schedule" class="screen">
-      <div class="header"><h1>Gym Schedule 📅</h1></div>
+    <!-- ===== PERKS ===== -->
+    <div id="s-perks" class="screen">
+      <div class="header"><h1>Rewards & Perks 🎁</h1></div>
+      <div class="card" style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border-color:#93c5fd;text-align:center;">
+        <p style="font-size:14px;font-weight:600;color:#1d4ed8;margin-bottom:10px;">Your Referral Code</p>
+        <div onclick="copyCode()" style="background:#fff;display:inline-block;padding:12px 28px;border-radius:12px;border:2px dashed #2563eb;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='#fff'">
+          <p style="font-size:22px;font-weight:800;color:#1e40af;letter-spacing:2px;">RAHUL-GYM-2K26</p>
+        </div>
+        <p style="font-size:12px;color:#3b82f6;margin-top:10px;" id="copy-status">Tap to copy · Share with friends for 10% off!</p>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:14px;">
+        <div class="card" style="flex:1;text-align:center;padding:12px;margin-bottom:0;"><p style="font-size:20px;font-weight:800;color:#16a34a;">2</p><p style="font-size:11px;color:#6b7280;font-weight:600;">Friends Joined</p></div>
+        <div class="card" style="flex:1;text-align:center;padding:12px;margin-bottom:0;"><p style="font-size:20px;font-weight:800;color:#2563eb;">₹3,000</p><p style="font-size:11px;color:#6b7280;font-weight:600;">Saved</p></div>
+      </div>
+      <p style="font-size:15px;font-weight:700;color:#111;margin-bottom:10px;">Local Partner Perks</p>
+      <div class="perk-card" onclick="showAppToast('🎉','Perk Activated!','Show this screen at Green Leaf Cafe for 10% off')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><p style="font-size:15px;font-weight:700;color:#111;">Green Leaf Cafe</p><p style="font-size:12px;color:#6b7280;">Food & Drinks</p></div><span class="badge badge-green">Unlocked ✓</span></div>
+        <p style="font-size:14px;color:#16a34a;font-weight:600;margin-top:6px;">10% off smoothies & salads</p>
+        <div style="margin-top:8px;background:#f0fdf4;padding:8px;border-radius:8px;text-align:center;cursor:pointer;"><p style="font-size:12px;color:#16a34a;font-weight:600;">🔓 Tap to show QR at store</p></div>
+      </div>
+      <div class="perk-card" onclick="showAppToast('🎉','Perk Activated!','Show this screen at SportZone for 15% off')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><p style="font-size:15px;font-weight:700;color:#111;">SportZone Apparel</p><p style="font-size:12px;color:#6b7280;">Sportswear</p></div><span class="badge badge-green">Unlocked ✓</span></div>
+        <p style="font-size:14px;color:#16a34a;font-weight:600;margin-top:6px;">15% off gym wear</p>
+      </div>
+      <div class="perk-card perk-locked">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><p style="font-size:15px;font-weight:700;color:#111;">PhysioFlex Clinic</p><p style="font-size:12px;color:#6b7280;">Health</p></div><span class="badge" style="background:#f3f4f6;color:#6b7280;">🔒 3 more days</span></div>
+        <p style="font-size:14px;color:#6b7280;font-weight:600;margin-top:6px;">Free first consultation</p>
+        <div class="progress-bar" style="margin-top:8px;"><div class="progress-fill" style="width:80%;background:#6b7280;"></div></div>
+      </div>
+    </div>
+
+    <!-- ===== VOTE ===== -->
+    <div id="s-vote" class="screen">
+      <div class="header"><h1>Gym Wishlist 🗳️</h1><p>Vote on what matters to you</p></div>
+      <!-- Poll 1: Not voted yet -->
+      <div class="card" id="poll1-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+          <p style="font-size:15px;font-weight:700;color:#111;flex:1;margin-right:8px;">Which equipment should we buy next?</p>
+          <span class="badge badge-green">Active</span>
+        </div>
+        <p style="font-size:13px;color:#6b7280;margin-bottom:12px;">Budget: ₹80,000 · 52 votes</p>
+        <div id="poll1-options">
+          <div class="vote-option" onclick="castVote(1,0)"><p style="font-size:14px;font-weight:600;color:#374151;">Leg Press Machine</p><p style="font-size:12px;color:#9ca3af;">Heavy-duty 45-degree</p></div>
+          <div class="vote-option" onclick="castVote(1,1)"><p style="font-size:14px;font-weight:600;color:#374151;">Stairmaster</p><p style="font-size:12px;color:#9ca3af;">Commercial stair climber</p></div>
+          <div class="vote-option" onclick="castVote(1,2)"><p style="font-size:14px;font-weight:600;color:#374151;">Dumbbell Set (5-50kg)</p><p style="font-size:12px;color:#9ca3af;">Full rubber hex rack</p></div>
+        </div>
+        <p style="font-size:12px;color:#9ca3af;margin-top:10px;text-align:center;" id="poll1-footer">Tap an option to vote · Ends 15 Jun</p>
+      </div>
+      <!-- Poll 2: Already voted -->
       <div class="card">
-        <div class="closure-row"><div><p style="font-size:14px; font-weight:600; color:#111;">Annual Maintenance</p><p style="font-size:12px; color:#6b7280;">Equipment servicing</p></div><div style="text-align:right;"><p style="font-size:13px; color:#374151;">10 - 12 Jul</p></div></div>
-        <div class="closure-row"><div><p style="font-size:14px; font-weight:600; color:#111;">Independence Day</p><p style="font-size:12px; color:#6b7280;">National Holiday</p></div><div style="text-align:right;"><p style="font-size:13px; color:#374151;">15 Aug</p></div></div>
-        <div class="closure-row"><div><p style="font-size:14px; font-weight:600; color:#111;">Diwali Break</p><p style="font-size:12px; color:#6b7280;">Festival holidays</p></div><div style="text-align:right;"><p style="font-size:13px; color:#374151;">20 - 23 Oct</p></div></div>
-        <div class="closure-row" style="border:none;"><div><p style="font-size:14px; font-weight:600; color:#111;">Christmas & New Year</p><p style="font-size:12px; color:#6b7280;">Year-end break</p></div><div style="text-align:right;"><p style="font-size:13px; color:#374151;">25 Dec - 1 Jan</p></div></div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+          <p style="font-size:15px;font-weight:700;color:#111;">Preferred new batch timing?</p>
+          <span class="badge badge-green">Active</span>
+        </div>
+        <p style="font-size:13px;color:#6b7280;margin-bottom:12px;">50 votes</p>
+        <div class="vote-option voted">
+          <div style="display:flex;justify-content:space-between;"><p style="font-size:14px;font-weight:600;color:#2563eb;">🏆 6:30 PM - 8:00 PM <span style="font-weight:400;color:#6b7280;">(Your vote)</span></p><p style="font-size:14px;font-weight:700;color:#2563eb;">54%</p></div>
+          <div class="vote-bar"><div class="vote-fill" style="width:54%;background:#2563eb;"></div></div>
+        </div>
+        <div class="vote-option" style="cursor:default;">
+          <div style="display:flex;justify-content:space-between;"><p style="font-size:14px;color:#6b7280;">5:00 PM - 6:30 PM</p><p style="font-size:14px;color:#6b7280;">28%</p></div>
+          <div class="vote-bar"><div class="vote-fill" style="width:28%;background:#93c5fd;"></div></div>
+        </div>
+        <div class="vote-option" style="cursor:default;">
+          <div style="display:flex;justify-content:space-between;"><p style="font-size:14px;color:#6b7280;">8:00 PM - 9:30 PM</p><p style="font-size:14px;color:#6b7280;">18%</p></div>
+          <div class="vote-bar"><div class="vote-fill" style="width:18%;background:#93c5fd;"></div></div>
+        </div>
       </div>
     </div>
 
-    <div class="tab-bar">
-      <div class="tab active" onclick="showTab('home')"><div class="icon">🏠</div><div class="label">Home</div></div>
-      <div class="tab" onclick="showTab('qr')"><div class="icon">📷</div><div class="label">QR</div></div>
-      <div class="tab" onclick="showTab('news')"><div class="icon">📢</div><div class="label">News</div></div>
-      <div class="tab" onclick="showTab('perks')"><div class="icon">🎁</div><div class="label">Perks</div></div>
-      <div class="tab" onclick="showTab('vote')"><div class="icon">🗳️</div><div class="label">Vote</div></div>
-      <div class="tab" onclick="showTab('schedule')"><div class="icon">📅</div><div class="label">Schedule</div></div>
+    <!-- ===== ASK (QUERIES) ===== -->
+    <div id="s-ask" class="screen">
+      <div class="header"><h1>Ask a Question ❓</h1><p>Get answers from the gym staff</p></div>
+      <div class="card">
+        <div style="margin-bottom:12px;">
+          <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Subject</label>
+          <input id="q-subject" type="text" placeholder="e.g. Can I change my plan?" style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;" onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#e5e7eb'">
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Details</label>
+          <textarea id="q-detail" rows="3" placeholder="Describe your question..." style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none;resize:none;" onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
+        </div>
+        <div style="margin-bottom:14px;">
+          <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Visibility</label>
+          <div style="display:flex;gap:8px;">
+            <label style="flex:1;display:flex;align-items:center;gap:6px;padding:10px;border:2px solid #2563eb;border-radius:10px;background:#eff6ff;cursor:pointer;font-size:13px;font-weight:600;color:#2563eb;"><input type="radio" name="q-vis" value="private" checked style="accent-color:#2563eb;"> Private</label>
+            <label style="flex:1;display:flex;align-items:center;gap:6px;padding:10px;border:2px solid #e5e7eb;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;color:#6b7280;"><input type="radio" name="q-vis" value="public" style="accent-color:#2563eb;"> Public</label>
+          </div>
+        </div>
+        <button onclick="submitQuery()" class="btn btn-blue">Submit Question</button>
+      </div>
+      <p style="font-size:14px;font-weight:700;color:#111;margin:6px 0 10px;">Your Previous Questions</p>
+      <div id="my-queries">
+        <div class="card" style="padding:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <p style="font-size:14px;font-weight:600;color:#111;">Can I bring a guest?</p>
+            <span class="badge badge-green">Answered</span>
+          </div>
+          <p style="font-size:13px;color:#6b7280;margin-bottom:6px;">Asked 20 May</p>
+          <div style="background:#eff6ff;padding:10px;border-radius:8px;border-left:3px solid #2563eb;"><p style="font-size:13px;color:#374151;"><strong style="color:#2563eb;">Staff:</strong> Yes! Members get 1 free guest pass per month. Ask at reception.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SCHEDULE ===== -->
+    <div id="s-schedule" class="screen">
+      <div class="header"><h1>Gym Schedule 📅</h1><p>Upcoming closures & holidays</p></div>
+      <div class="card">
+        <div class="closure-row"><div><p style="font-size:14px;font-weight:600;color:#111;">Annual Maintenance</p><p style="font-size:12px;color:#6b7280;">Equipment servicing</p></div><div style="text-align:right;"><p style="font-size:13px;font-weight:600;color:#374151;">10 - 12 Jul</p><p style="font-size:11px;color:#9ca3af;">3 days</p></div></div>
+        <div class="closure-row"><div><p style="font-size:14px;font-weight:600;color:#111;">Independence Day</p><p style="font-size:12px;color:#6b7280;">National Holiday</p></div><div style="text-align:right;"><p style="font-size:13px;font-weight:600;color:#374151;">15 Aug</p><p style="font-size:11px;color:#9ca3af;">1 day</p></div></div>
+        <div class="closure-row"><div><p style="font-size:14px;font-weight:600;color:#111;">Diwali Break</p><p style="font-size:12px;color:#6b7280;">Festival holidays</p></div><div style="text-align:right;"><p style="font-size:13px;font-weight:600;color:#374151;">20 - 23 Oct</p><p style="font-size:11px;color:#9ca3af;">4 days</p></div></div>
+        <div class="closure-row" style="border:none;"><div><p style="font-size:14px;font-weight:600;color:#111;">Christmas & New Year</p><p style="font-size:12px;color:#6b7280;">Year-end break</p></div><div style="text-align:right;"><p style="font-size:13px;font-weight:600;color:#374151;">25 Dec - 1 Jan</p><p style="font-size:11px;color:#9ca3af;">8 days</p></div></div>
+      </div>
+      <div class="card" style="background:#eff6ff;border-color:#93c5fd;">
+        <p style="font-size:13px;font-weight:600;color:#1d4ed8;">ℹ️ Gym Hours</p>
+        <p style="font-size:14px;color:#374151;margin-top:4px;">Mon-Sat: 5:30 AM - 10:00 PM</p>
+        <p style="font-size:14px;color:#374151;">Sunday: 7:00 AM - 1:00 PM</p>
+      </div>
+    </div>
+
+    <!-- ===== PROFILE ===== -->
+    <div id="s-profile" class="screen">
+      <div class="header"><h1>My Profile 👤</h1></div>
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="width:80px;height:80px;border-radius:40px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;"><span style="font-size:32px;color:#fff;font-weight:800;">RS</span></div>
+        <p style="font-size:20px;font-weight:800;color:#111;">Rahul Sharma</p>
+        <p style="font-size:14px;color:#6b7280;">Member since Nov 2025</p>
+      </div>
+      <div class="card" style="padding:0;">
+        <div style="display:flex;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #f3f4f6;"><span style="font-size:14px;color:#6b7280;">Email</span><span style="font-size:14px;font-weight:600;color:#111;">rahul@email.com</span></div>
+        <div style="display:flex;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #f3f4f6;"><span style="font-size:14px;color:#6b7280;">Phone</span><span style="font-size:14px;font-weight:600;color:#111;">9876543210</span></div>
+        <div style="display:flex;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #f3f4f6;"><span style="font-size:14px;color:#6b7280;">Plan</span><span style="font-size:14px;font-weight:600;color:#111;">Monthly — ₹1,500</span></div>
+        <div style="display:flex;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #f3f4f6;"><span style="font-size:14px;color:#6b7280;">Status</span><span class="badge badge-green">Active</span></div>
+        <div style="display:flex;justify-content:space-between;padding:14px 16px;"><span style="font-size:14px;color:#6b7280;">Gym</span><span style="font-size:14px;font-weight:600;color:#111;">FitZone Gym</span></div>
+      </div>
+      <button onclick="doLogout()" class="btn" style="background:#fee2e2;color:#dc2626;margin-top:14px;font-size:15px;">Sign Out</button>
+    </div>
+
+    <!-- TAB BAR -->
+    <div class="tab-bar" id="tab-bar" style="display:none;">
+      <div class="tab active" onclick="showTab('home',this)"><div class="icon">🏠</div><div class="label">Home</div></div>
+      <div class="tab" onclick="showTab('qr',this)"><div class="icon">📷</div><div class="label">QR</div></div>
+      <div class="tab" onclick="showTab('news',this)"><div class="icon">📢</div><div class="label">News</div></div>
+      <div class="tab" onclick="showTab('perks',this)"><div class="icon">🎁</div><div class="label">Perks</div></div>
+      <div class="tab" onclick="showTab('vote',this)"><div class="icon">🗳️</div><div class="label">Vote</div></div>
+      <div class="tab" onclick="showTab('ask',this)"><div class="icon">❓</div><div class="label">Ask</div></div>
+      <div class="tab" onclick="showTab('schedule',this)"><div class="icon">📅</div><div class="label">Schedule</div></div>
+      <div class="tab" onclick="showTab('profile',this)"><div class="icon">👤</div><div class="label">Me</div></div>
     </div>
   </div>
-</div>
-
-<!-- PHONE 2: Check-in states -->
-<div>
-  <p style="text-align:center; font-weight:700; color:#374151; margin-bottom:12px; font-size:14px;">QR Check-in — Success State</p>
-  <div class="phone">
-    <div class="status-bar"><span>9:41 AM</span><span>GymDesk</span><span>100%</span></div>
-    <div class="success-screen">
-      <div class="emoji">✅</div>
-      <h2>Checked In!</h2>
-      <p style="font-size:16px; opacity:0.85; margin-bottom:8px;">Welcome! The receptionist has been notified.</p>
-      <p style="font-size:14px; opacity:0.6; margin-bottom:20px;">9:41 AM</p>
-      <div style="background:rgba(255,255,255,0.2); padding:10px 20px; border-radius:20px; margin-bottom:30px;">
-        <p style="font-size:16px; font-weight:700;">12 day streak 🔥</p>
-      </div>
-      <div style="background:rgba(255,255,255,0.25); padding:14px 40px; border-radius:14px;">
-        <p style="font-size:16px; font-weight:700;">Done</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- PHONE 3: Blocked state -->
-<div>
-  <p style="text-align:center; font-weight:700; color:#374151; margin-bottom:12px; font-size:14px;">QR Check-in — Blocked State</p>
-  <div class="phone">
-    <div class="status-bar"><span>9:41 AM</span><span>GymDesk</span><span>100%</span></div>
-    <div class="blocked-screen">
-      <div class="emoji">🚫</div>
-      <h2>Entry Blocked</h2>
-      <p style="font-size:22px; font-weight:700; opacity:0.9; margin-bottom:12px;">₹1,500 Overdue</p>
-      <p style="font-size:16px; opacity:0.8; margin-bottom:24px; line-height:1.5; max-width:280px;">Your payment is past the grace period. Please clear your dues to check in.</p>
-      <div style="background:#fff; padding:16px 36px; border-radius:14px; margin-bottom:16px;">
-        <p style="font-size:18px; font-weight:800; color:#dc2626;">Pay Now</p>
-      </div>
-      <p style="opacity:0.7; font-size:16px; cursor:pointer;">Go Back</p>
-    </div>
-  </div>
-</div>
-
 </div>
 
 <script>
-function showTab(name) {
+// ===== TAB NAVIGATION =====
+function showTab(name, el) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('s-' + name).classList.add('active');
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  event.target.closest('.tab').classList.add('active');
+  if(el) el.classList.add('active');
+}
+
+// ===== LOGIN =====
+const validUsers = {
+  'rahul@email.com': { pass:'password123', name:'Rahul' },
+  'priya@email.com': { pass:'password123', name:'Priya' },
+  'amit@email.com': { pass:'password123', name:'Amit' },
+};
+let wrongPassCount = 0;
+
+function doLogin() {
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const pass = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  const forgotEl = document.getElementById('login-forgot');
+
+  if (!email || !pass) { errEl.textContent = 'Please enter email and password.'; return; }
+
+  if (!validUsers[email]) {
+    errEl.textContent = '❌ No account found with this email. Check for typos.';
+    forgotEl.style.display = 'none';
+    wrongPassCount = 0;
+    return;
+  }
+
+  if (validUsers[email].pass !== pass) {
+    wrongPassCount++;
+    errEl.textContent = '❌ Incorrect password. Try again.';
+    if (wrongPassCount >= 1) forgotEl.style.display = 'block';
+    return;
+  }
+
+  // Success
+  errEl.textContent = '';
+  forgotEl.style.display = 'none';
+  document.getElementById('s-login').classList.remove('active');
+  document.getElementById('s-home').classList.add('active');
+  document.getElementById('tab-bar').style.display = 'flex';
+}
+
+function resetPassword() {
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  if (validUsers[email]) {
+    validUsers[email].pass = 'password123';
+    document.getElementById('login-error').textContent = '';
+    document.getElementById('login-error').style.color = '#86efac';
+    document.getElementById('login-error').textContent = '✅ Password reset to "password123"';
+    document.getElementById('login-pass').value = 'password123';
+    setTimeout(() => { document.getElementById('login-error').style.color = '#fca5a5'; }, 3000);
+  }
+}
+
+function doLogout() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('s-login').classList.add('active');
+  document.getElementById('tab-bar').style.display = 'none';
+  wrongPassCount = 0;
+}
+
+// ===== QR SCANNER =====
+let memberOverdue = false; // toggle for demo
+
+function startScan() {
+  document.getElementById('scanner-screen').classList.add('active');
+  setTimeout(() => {
+    document.getElementById('scanner-screen').classList.remove('active');
+    if (memberOverdue) {
+      document.getElementById('blocked-screen').classList.add('active');
+    } else {
+      const now = new Date();
+      document.getElementById('checkin-time').textContent = now.toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit',hour12:true});
+      document.getElementById('success-screen').classList.add('active');
+      // Increment streak
+      let streak = parseInt(document.getElementById('streak-display').textContent) + 1;
+      document.getElementById('streak-display').textContent = streak + ' 🔥';
+      document.getElementById('checkin-streak').textContent = streak + ' day streak 🔥';
+      const pct = Math.min(100, (streak/15)*100);
+      document.getElementById('streak-bar').style.width = pct+'%';
+      if (streak >= 15) {
+        document.getElementById('streak-msg').textContent = '🎉 All partner discounts unlocked!';
+      } else {
+        document.getElementById('streak-msg').textContent = (15-streak) + ' more days to unlock partner discounts';
+      }
+    }
+    memberOverdue = !memberOverdue; // alternate for demo
+  }, 2500);
+}
+
+function cancelScan() {
+  document.getElementById('scanner-screen').classList.remove('active');
+}
+
+function closeFullscreen() {
+  document.querySelectorAll('.fullscreen').forEach(f => f.classList.remove('active'));
+  // Reset payment screen
+  document.getElementById('pay-step-1').style.display = 'block';
+  document.getElementById('pay-step-2').style.display = 'none';
+}
+
+// ===== PAYMENT =====
+function simulatePayment() {
+  document.getElementById('payment-screen').classList.add('active');
+  document.getElementById('pay-step-1').style.display = 'block';
+  document.getElementById('pay-step-2').style.display = 'none';
+  setTimeout(() => {
+    document.getElementById('pay-step-1').style.display = 'none';
+    document.getElementById('pay-step-2').style.display = 'block';
+    // Add to history
+    const hist = document.getElementById('payment-history');
+    const entry = document.createElement('div');
+    entry.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #f3f4f6;';
+    entry.className = 'fade-in';
+    entry.innerHTML = '<div><p style="font-size:14px;font-weight:600;color:#111;">₹1,500</p><p style="font-size:12px;color:#6b7280;">06 Jun 2026</p></div><span class="badge badge-green">Paid ✓</span>';
+    hist.insertBefore(entry, hist.firstChild);
+  }, 2500);
+}
+
+// ===== VOTING =====
+function castVote(pollId, optIdx) {
+  if (pollId === 1) {
+    const votes = [18, 12, 22];
+    votes[optIdx]++;
+    const total = votes.reduce((a,b)=>a+b,0);
+    const maxV = Math.max(...votes);
+    const labels = ['Leg Press Machine','Stairmaster','Dumbbell Set (5-50kg)'];
+    const descs = ['Heavy-duty 45-degree','Commercial stair climber','Full rubber hex rack'];
+    const container = document.getElementById('poll1-options');
+    container.innerHTML = votes.map((v,i) => {
+      const pct = Math.round(v/total*100);
+      const isLeading = v === maxV;
+      const isYours = i === optIdx;
+      return `<div class="vote-option ${isYours?'voted':''}" style="cursor:default;">
+        <div style="display:flex;justify-content:space-between;">
+          <p style="font-size:14px;font-weight:${isLeading?'700':'400'};color:${isLeading?'#2563eb':'#6b7280'};">${isLeading?'🏆 ':''}${labels[i]}${isYours?' <span style="font-weight:400;color:#6b7280;">(Your vote)</span>':''}</p>
+          <p style="font-size:14px;font-weight:700;color:${isLeading?'#2563eb':'#6b7280'};">${pct}%</p>
+        </div>
+        <div class="vote-bar"><div class="vote-fill" style="width:${pct}%;background:${isLeading?'#2563eb':'#93c5fd'};"></div></div>
+      </div>`;
+    }).join('');
+    document.getElementById('poll1-footer').textContent = `You voted · ${total} total votes · Ends 15 Jun`;
+    showAppToast('🗳️', 'Vote Recorded!', 'Thanks for voting on the equipment poll');
+  }
+}
+
+// ===== QUERIES =====
+function submitQuery() {
+  const subj = document.getElementById('q-subject').value.trim();
+  const detail = document.getElementById('q-detail').value.trim();
+  if (!subj) { showAppToast('⚠️', 'Missing Subject', 'Please enter a subject for your question'); return; }
+  const list = document.getElementById('my-queries');
+  const card = document.createElement('div');
+  card.className = 'card fade-in';
+  card.style.padding = '14px';
+  card.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+    <p style="font-size:14px;font-weight:600;color:#111;">${subj}</p>
+    <span class="badge badge-yellow">Pending</span>
+  </div>
+  <p style="font-size:13px;color:#6b7280;">Asked just now</p>
+  ${detail ? `<p style="font-size:13px;color:#374151;margin-top:6px;">${detail}</p>` : ''}`;
+  list.insertBefore(card, list.firstChild);
+  document.getElementById('q-subject').value = '';
+  document.getElementById('q-detail').value = '';
+  showAppToast('✅', 'Question Submitted', 'Staff will respond shortly');
+}
+
+// ===== COPY REFERRAL CODE =====
+function copyCode() {
+  const el = document.getElementById('copy-status');
+  el.textContent = '✅ Copied to clipboard!';
+  el.style.color = '#16a34a';
+  setTimeout(() => { el.textContent = 'Tap to copy · Share with friends for 10% off!'; el.style.color = '#3b82f6'; }, 2000);
+}
+
+// ===== APP TOAST =====
+function showAppToast(icon, title, msg) {
+  document.getElementById('app-toast-icon').textContent = icon;
+  document.getElementById('app-toast-title').textContent = title;
+  document.getElementById('app-toast-msg').textContent = msg;
+  const toast = document.getElementById('app-toast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
 }
 </script>
 </body>

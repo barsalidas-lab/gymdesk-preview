@@ -3,63 +3,213 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GymDesk - Owner Dashboard Preview</title>
+<title>GymDesk - Owner Dashboard</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   body { font-family: 'Inter', system-ui, sans-serif; }
   .page { display: none; }
   .page.active { display: block; }
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:50; align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .toast { position:fixed; top:20px; right:20px; z-index:100; transform:translateX(120%); transition:transform 0.3s ease; }
+  .toast.show { transform:translateX(0); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  .animate-pulse { animation: pulse 2s infinite; }
+  @keyframes slideIn { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+  .slide-in { animation: slideIn 0.3s ease; }
 </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex">
 
+<!-- Toast Container -->
+<div id="toast" class="toast bg-white border border-green-200 shadow-xl rounded-xl p-4 flex items-center gap-3 max-w-sm">
+  <span class="text-2xl">🔔</span>
+  <div><p id="toast-title" class="font-semibold text-gray-900 text-sm"></p><p id="toast-msg" class="text-gray-500 text-xs"></p></div>
+  <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600 ml-2 text-lg">&times;</button>
+</div>
+
+<!-- MODAL: Add Member -->
+<div id="modal-member" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-member')">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 mx-4">
+    <div class="flex justify-between items-center mb-5"><h2 class="text-lg font-bold text-gray-900">Add New Member</h2><button onclick="closeModal('modal-member')" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button></div>
+    <div class="space-y-3">
+      <div><label class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label><input id="m-name" type="text" placeholder="e.g. Ravi Teja" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></div>
+      <div><label class="block text-sm font-medium text-gray-700 mb-1">Email *</label><input id="m-email" type="email" placeholder="ravi@email.com" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></div>
+      <div><label class="block text-sm font-medium text-gray-700 mb-1">Phone *</label><input id="m-phone" type="tel" placeholder="9876543215" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></div>
+      <div><label class="block text-sm font-medium text-gray-700 mb-1">Plan</label>
+        <select id="m-plan" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          <option value="1500">Monthly — ₹1,500</option><option value="4000">Quarterly — ₹4,000</option><option value="7500">Half-Yearly — ₹7,500</option><option value="14000">Annual — ₹14,000</option>
+        </select>
+      </div>
+      <p id="m-error" class="text-red-500 text-xs hidden">Please fill in all required fields.</p>
+      <button onclick="addMember()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-semibold transition">Add Member</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add Announcement -->
+<div id="modal-announcement" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-announcement')">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 mx-4">
+    <div class="flex justify-between items-center mb-5"><h2 class="text-lg font-bold text-gray-900">New Announcement</h2><button onclick="closeModal('modal-announcement')" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button></div>
+    <div class="space-y-3">
+      <div><label class="block text-sm font-medium text-gray-700 mb-1">Title *</label><input id="a-title" type="text" placeholder="e.g. Holiday Notice" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></div>
+      <div><label class="block text-sm font-medium text-gray-700 mb-1">Author</label><input id="a-author" type="text" value="Admin" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></div>
+      <div><label class="block text-sm font-medium text-gray-700 mb-1">Message *</label><textarea id="a-msg" rows="4" placeholder="Write your announcement..." class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"></textarea></div>
+      <p id="a-error" class="text-red-500 text-xs hidden">Please fill in title and message.</p>
+      <button onclick="addAnnouncement()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-semibold transition">Post Announcement</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add Closure -->
+<div id="modal-closure" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-closure')">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 mx-4">
+    <div class="flex justify-between items-center mb-5"><h2 id="closure-modal-title" class="text-lg font-bold text-gray-900">Add Closure</h2><button onclick="closeModal('modal-closure')" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button></div>
+    <div class="space-y-3">
+      <div><label class="block text-sm font-medium text-gray-700 mb-1">Title *</label><input id="c-title" type="text" placeholder="e.g. Holi Festival" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="block text-sm font-medium text-gray-700 mb-1">From *</label><input id="c-from" type="date" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></div>
+        <div><label class="block text-sm font-medium text-gray-700 mb-1">To *</label><input id="c-to" type="date" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></div>
+      </div>
+      <div><label class="block text-sm font-medium text-gray-700 mb-1">Reason</label><input id="c-reason" type="text" placeholder="e.g. Festival holidays" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></div>
+      <p id="c-error" class="text-red-500 text-xs hidden">Please fill in title and dates.</p>
+      <input type="hidden" id="c-edit-idx" value="-1">
+      <button onclick="saveClosure()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-semibold transition">Save Closure</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add Partner -->
+<div id="modal-partner" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-partner')">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 mx-4">
+    <div class="flex justify-between items-center mb-5"><h2 class="text-lg font-bold text-gray-900">Add Partner Business</h2><button onclick="closeModal('modal-partner')" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button></div>
+    <div class="space-y-3">
+      <div><label class="block text-sm font-medium text-gray-700 mb-1">Business Name *</label><input id="p-name" type="text" placeholder="e.g. FitBites Cafe" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></div>
+      <div><label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+        <select id="p-cat" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          <option>Food & Drinks</option><option>Sportswear</option><option>Health</option><option>Supplements</option><option>Wellness</option>
+        </select>
+      </div>
+      <div><label class="block text-sm font-medium text-gray-700 mb-1">Discount / Offer *</label><input id="p-offer" type="text" placeholder="e.g. 15% off all items" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></div>
+      <div><label class="block text-sm font-medium text-gray-700 mb-1">Discount Value</label><input id="p-disc" type="text" placeholder="e.g. 15%" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></div>
+      <p id="p-error" class="text-red-500 text-xs hidden">Please fill in name and offer.</p>
+      <button onclick="addPartner()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-semibold transition">Add Partner</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Create Poll -->
+<div id="modal-poll" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-poll')">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 mx-4">
+    <div class="flex justify-between items-center mb-5"><h2 class="text-lg font-bold text-gray-900">Create Poll</h2><button onclick="closeModal('modal-poll')" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button></div>
+    <div class="space-y-3">
+      <div><label class="block text-sm font-medium text-gray-700 mb-1">Question *</label><input id="pl-q" type="text" placeholder="What should we add next?" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></div>
+      <div><label class="block text-sm font-medium text-gray-700 mb-1">Description</label><input id="pl-desc" type="text" placeholder="e.g. Budget: ₹50,000" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></div>
+      <div id="poll-options-container">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Options *</label>
+        <div class="space-y-2" id="poll-opts">
+          <input type="text" placeholder="Option 1" class="poll-opt-input w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          <input type="text" placeholder="Option 2" class="poll-opt-input w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+        </div>
+        <button onclick="addPollOption()" class="mt-2 text-blue-600 text-sm font-medium hover:text-blue-700">+ Add Option</button>
+      </div>
+      <p id="pl-error" class="text-red-500 text-xs hidden">Need a question and at least 2 options.</p>
+      <button onclick="createPoll()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-semibold transition">Create Poll</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: WhatsApp Nudge Preview -->
+<div id="modal-nudge" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-nudge')">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 mx-4">
+    <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-bold text-gray-900">Send WhatsApp Nudge</h2><button onclick="closeModal('modal-nudge')" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button></div>
+    <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
+      <p class="text-sm text-gray-700" id="nudge-preview"></p>
+    </div>
+    <p class="text-xs text-gray-500 mb-4">This will open WhatsApp with a pre-filled message to <strong id="nudge-name"></strong>.</p>
+    <div class="flex gap-2">
+      <button onclick="closeModal('modal-nudge')" class="flex-1 py-2.5 rounded-lg text-sm font-semibold border text-gray-600 hover:bg-gray-50 transition">Cancel</button>
+      <button onclick="confirmNudge()" class="flex-1 py-2.5 rounded-lg text-sm font-semibold bg-green-600 hover:bg-green-700 text-white transition">Send via WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Confirm Delete -->
+<div id="modal-delete" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-delete')">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 mx-4">
+    <div class="text-center mb-4"><span class="text-4xl">⚠️</span><h2 class="text-lg font-bold text-gray-900 mt-2">Confirm Delete</h2><p class="text-sm text-gray-500 mt-1" id="delete-msg">Are you sure?</p></div>
+    <div class="flex gap-2">
+      <button onclick="closeModal('modal-delete')" class="flex-1 py-2.5 rounded-lg text-sm font-semibold border text-gray-600 hover:bg-gray-50 transition">Cancel</button>
+      <button onclick="confirmDelete()" class="flex-1 py-2.5 rounded-lg text-sm font-semibold bg-red-600 hover:bg-red-700 text-white transition">Delete</button>
+    </div>
+  </div>
+</div>
+
 <!-- Sidebar -->
-<aside class="w-64 bg-white border-r min-h-screen p-4 flex flex-col sticky top-0 h-screen">
+<aside class="w-64 bg-white border-r min-h-screen p-4 flex flex-col sticky top-0 h-screen overflow-y-auto">
   <div class="mb-8">
-    <h1 class="text-xl font-bold text-gray-900">GymDesk</h1>
+    <h1 class="text-xl font-bold text-gray-900">🏋️ GymDesk</h1>
     <p class="text-sm text-gray-500">Owner Dashboard</p>
   </div>
   <nav class="flex-1 space-y-1" id="nav">
-    <a href="#" onclick="showPage('overview')" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium bg-blue-50 text-blue-700">📊 Overview</a>
-    <a href="#" onclick="showPage('members')" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">👥 Members</a>
-    <a href="#" onclick="showPage('payments')" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">💰 Payments</a>
-    <a href="#" onclick="showPage('checkins')" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">📱 Check-ins & QR</a>
-    <a href="#" onclick="showPage('retention')" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">🚨 Retention Risk</a>
-    <a href="#" onclick="showPage('referrals')" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">🔗 Referrals</a>
-    <a href="#" onclick="showPage('partners')" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">🤝 Local Perks</a>
-    <a href="#" onclick="showPage('polls')" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">🗳️ Polls / Wishlist</a>
-    <a href="#" onclick="showPage('announcements')" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">📢 Announcements</a>
-    <a href="#" onclick="showPage('queries')" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">❓ Queries</a>
-    <a href="#" onclick="showPage('closures')" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">📅 Closures</a>
+    <a href="#" data-page="overview" onclick="showPage('overview',this)" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium bg-blue-50 text-blue-700">📊 Overview</a>
+    <a href="#" data-page="members" onclick="showPage('members',this)" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">👥 Members</a>
+    <a href="#" data-page="payments" onclick="showPage('payments',this)" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">💰 Payments</a>
+    <a href="#" data-page="checkins" onclick="showPage('checkins',this)" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">📱 Check-ins & QR</a>
+    <a href="#" data-page="retention" onclick="showPage('retention',this)" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">🚨 Retention Risk</a>
+    <a href="#" data-page="referrals" onclick="showPage('referrals',this)" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">🔗 Referrals</a>
+    <a href="#" data-page="partners" onclick="showPage('partners',this)" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">🤝 Local Perks</a>
+    <a href="#" data-page="polls" onclick="showPage('polls',this)" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">🗳️ Polls / Wishlist</a>
+    <a href="#" data-page="announcements" onclick="showPage('announcements',this)" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">📢 Announcements</a>
+    <a href="#" data-page="queries" onclick="showPage('queries',this)" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">❓ Queries</a>
+    <a href="#" data-page="closures" onclick="showPage('closures',this)" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">📅 Closures</a>
   </nav>
-  <p class="text-xs text-gray-400 mt-4">GymDesk v1.0 — Owner Preview</p>
+  <div class="pt-4 border-t mt-4">
+    <div class="flex items-center gap-3 px-3 py-2">
+      <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold">RK</div>
+      <div><p class="text-sm font-medium text-gray-900">Raj Kumar</p><p class="text-xs text-gray-500">Owner</p></div>
+    </div>
+  </div>
 </aside>
 
 <!-- Main Content -->
-<main class="flex-1 p-8">
+<main class="flex-1 p-8 overflow-y-auto">
 
 <!-- OVERVIEW -->
 <div id="page-overview" class="page active">
-  <h1 class="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
+  <h1 class="text-2xl font-bold text-gray-900 mb-1">Dashboard</h1>
+  <p class="text-gray-500 mb-6">Welcome back, Raj. Here's your gym at a glance.</p>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-    <div class="p-6 rounded-xl bg-blue-50 text-blue-700 border"><p class="text-sm font-medium opacity-80">Total Members</p><p class="text-2xl font-bold mt-1">47</p></div>
-    <div class="p-6 rounded-xl bg-green-50 text-green-700 border"><p class="text-sm font-medium opacity-80">Active Members</p><p class="text-2xl font-bold mt-1">42</p></div>
-    <div class="p-6 rounded-xl bg-yellow-50 text-yellow-700 border"><p class="text-sm font-medium opacity-80">Pending Payments</p><p class="text-2xl font-bold mt-1">8</p></div>
-    <div class="p-6 rounded-xl bg-purple-50 text-purple-700 border"><p class="text-sm font-medium opacity-80">Collected This Month</p><p class="text-2xl font-bold mt-1">₹94,500</p></div>
+    <div class="p-6 rounded-xl bg-blue-50 text-blue-700 border border-blue-100 hover:shadow-md transition cursor-pointer" onclick="showPage('members',document.querySelector('[data-page=members]'))"><p class="text-sm font-medium opacity-80">Total Members</p><p class="text-3xl font-bold mt-1" id="stat-total">47</p><p class="text-xs opacity-60 mt-1">Click to view →</p></div>
+    <div class="p-6 rounded-xl bg-green-50 text-green-700 border border-green-100 hover:shadow-md transition cursor-pointer" onclick="showPage('members',document.querySelector('[data-page=members]'))"><p class="text-sm font-medium opacity-80">Active Members</p><p class="text-3xl font-bold mt-1" id="stat-active">42</p><p class="text-xs opacity-60 mt-1">Click to view →</p></div>
+    <div class="p-6 rounded-xl bg-yellow-50 text-yellow-700 border border-yellow-100 hover:shadow-md transition cursor-pointer" onclick="showPage('payments',document.querySelector('[data-page=payments]'))"><p class="text-sm font-medium opacity-80">Pending Payments</p><p class="text-3xl font-bold mt-1">8</p><p class="text-xs opacity-60 mt-1">Click to view →</p></div>
+    <div class="p-6 rounded-xl bg-purple-50 text-purple-700 border border-purple-100 hover:shadow-md transition"><p class="text-sm font-medium opacity-80">Collected This Month</p><p class="text-3xl font-bold mt-1">₹94,500</p></div>
   </div>
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="p-6 rounded-xl bg-cyan-50 text-cyan-700 border"><p class="text-sm font-medium opacity-80">Today's Check-ins</p><p class="text-2xl font-bold mt-1">18</p></div>
-    <div class="p-6 rounded-xl bg-red-50 text-red-700 border"><p class="text-sm font-medium opacity-80">At-Risk Members</p><p class="text-2xl font-bold mt-1">5</p></div>
-    <div class="p-6 rounded-xl bg-orange-50 text-orange-700 border"><p class="text-sm font-medium opacity-80">Active Referrals</p><p class="text-2xl font-bold mt-1">4</p></div>
-    <div class="p-6 rounded-xl bg-indigo-50 text-indigo-700 border"><p class="text-sm font-medium opacity-80">Poll Votes (Active)</p><p class="text-2xl font-bold mt-1">52</p></div>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="p-6 rounded-xl bg-cyan-50 text-cyan-700 border border-cyan-100 hover:shadow-md transition cursor-pointer" onclick="showPage('checkins',document.querySelector('[data-page=checkins]'))"><p class="text-sm font-medium opacity-80">Today's Check-ins</p><p class="text-3xl font-bold mt-1">18</p><p class="text-xs opacity-60 mt-1">Click to view →</p></div>
+    <div class="p-6 rounded-xl bg-red-50 text-red-700 border border-red-100 hover:shadow-md transition cursor-pointer" onclick="showPage('retention',document.querySelector('[data-page=retention]'))"><p class="text-sm font-medium opacity-80">At-Risk Members</p><p class="text-3xl font-bold mt-1">5</p><p class="text-xs opacity-60 mt-1">Click to view →</p></div>
+    <div class="p-6 rounded-xl bg-orange-50 text-orange-700 border border-orange-100 hover:shadow-md transition cursor-pointer" onclick="showPage('referrals',document.querySelector('[data-page=referrals]'))"><p class="text-sm font-medium opacity-80">Active Referrals</p><p class="text-3xl font-bold mt-1">4</p><p class="text-xs opacity-60 mt-1">Click to view →</p></div>
+    <div class="p-6 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-100 hover:shadow-md transition cursor-pointer" onclick="showPage('polls',document.querySelector('[data-page=polls]'))"><p class="text-sm font-medium opacity-80">Poll Votes (Active)</p><p class="text-3xl font-bold mt-1">52</p><p class="text-xs opacity-60 mt-1">Click to view →</p></div>
+  </div>
+  <!-- Recent Activity -->
+  <h2 class="text-lg font-bold text-gray-900 mb-3">Recent Activity</h2>
+  <div class="bg-white rounded-xl border divide-y" id="activity-feed">
+    <div class="px-5 py-3 flex items-center gap-3"><span class="text-lg">🔔</span><div><p class="text-sm text-gray-900"><strong>Rahul Sharma</strong> checked in</p><p class="text-xs text-gray-400">2 minutes ago</p></div></div>
+    <div class="px-5 py-3 flex items-center gap-3"><span class="text-lg">💰</span><div><p class="text-sm text-gray-900"><strong>Priya Patel</strong> paid ₹1,500</p><p class="text-xs text-gray-400">15 minutes ago</p></div></div>
+    <div class="px-5 py-3 flex items-center gap-3"><span class="text-lg">👤</span><div><p class="text-sm text-gray-900"><strong>New member</strong> Kavita Nair joined</p><p class="text-xs text-gray-400">1 hour ago</p></div></div>
+    <div class="px-5 py-3 flex items-center gap-3"><span class="text-lg">🗳️</span><div><p class="text-sm text-gray-900"><strong>Amit Kumar</strong> voted on equipment poll</p><p class="text-xs text-gray-400">2 hours ago</p></div></div>
+    <div class="px-5 py-3 flex items-center gap-3"><span class="text-lg">❓</span><div><p class="text-sm text-gray-900"><strong>Sneha Gupta</strong> submitted a query</p><p class="text-xs text-gray-400">3 hours ago</p></div></div>
   </div>
 </div>
 
 <!-- MEMBERS -->
 <div id="page-members" class="page">
-  <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold text-gray-900">Members</h1>
-    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">+ Add Member</button>
+  <div class="flex items-center justify-between mb-4">
+    <div><h1 class="text-2xl font-bold text-gray-900">Members</h1><p class="text-gray-500 text-sm">Manage your gym members</p></div>
+    <button onclick="openModal('modal-member')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">+ Add Member</button>
+  </div>
+  <div class="mb-4">
+    <input id="member-search" type="text" placeholder="Search by name, email, or phone..." oninput="filterMembers()" class="w-full md:w-80 border rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
   </div>
   <div class="bg-white rounded-xl border overflow-hidden">
     <table class="w-full">
@@ -67,30 +217,26 @@
         <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Name</th>
         <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Email</th>
         <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Phone</th>
-        <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Joined</th>
+        <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Plan</th>
         <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
+        <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Actions</th>
       </tr></thead>
-      <tbody class="divide-y">
-        <tr class="hover:bg-gray-50"><td class="px-6 py-4 text-sm font-medium text-gray-900">Rahul Sharma</td><td class="px-6 py-4 text-sm text-gray-600">rahul@email.com</td><td class="px-6 py-4 text-sm text-gray-600">9876543210</td><td class="px-6 py-4 text-sm text-gray-600">15 Nov 2025</td><td class="px-6 py-4"><span class="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-700">Active</span></td></tr>
-        <tr class="hover:bg-gray-50"><td class="px-6 py-4 text-sm font-medium text-gray-900">Priya Patel</td><td class="px-6 py-4 text-sm text-gray-600">priya@email.com</td><td class="px-6 py-4 text-sm text-gray-600">9876543211</td><td class="px-6 py-4 text-sm text-gray-600">01 Dec 2025</td><td class="px-6 py-4"><span class="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-700">Active</span></td></tr>
-        <tr class="hover:bg-gray-50"><td class="px-6 py-4 text-sm font-medium text-gray-900">Amit Kumar</td><td class="px-6 py-4 text-sm text-gray-600">amit@email.com</td><td class="px-6 py-4 text-sm text-gray-600">9876543212</td><td class="px-6 py-4 text-sm text-gray-600">10 Jan 2026</td><td class="px-6 py-4"><span class="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-700">Active</span></td></tr>
-        <tr class="hover:bg-gray-50"><td class="px-6 py-4 text-sm font-medium text-gray-900">Sneha Gupta</td><td class="px-6 py-4 text-sm text-gray-600">sneha@email.com</td><td class="px-6 py-4 text-sm text-gray-600">9876543213</td><td class="px-6 py-4 text-sm text-gray-600">20 Feb 2026</td><td class="px-6 py-4"><span class="text-xs px-2 py-1 rounded-full font-medium bg-red-100 text-red-700">Inactive</span></td></tr>
-        <tr class="hover:bg-gray-50"><td class="px-6 py-4 text-sm font-medium text-gray-900">Vikram Singh</td><td class="px-6 py-4 text-sm text-gray-600">vikram@email.com</td><td class="px-6 py-4 text-sm text-gray-600">9876543214</td><td class="px-6 py-4 text-sm text-gray-600">05 Mar 2026</td><td class="px-6 py-4"><span class="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-700">Active</span></td></tr>
-      </tbody>
+      <tbody id="members-table" class="divide-y"></tbody>
     </table>
   </div>
+  <p class="text-sm text-gray-400 mt-3" id="member-count"></p>
 </div>
 
 <!-- PAYMENTS -->
 <div id="page-payments" class="page">
-  <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold text-gray-900">Payments</h1>
-    <div class="flex gap-2">
-      <button class="px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white">All</button>
-      <button class="px-3 py-1.5 rounded-lg text-sm font-medium bg-white text-gray-600 border">Pending</button>
-      <button class="px-3 py-1.5 rounded-lg text-sm font-medium bg-white text-gray-600 border">Completed</button>
-      <button class="px-3 py-1.5 rounded-lg text-sm font-medium bg-white text-gray-600 border">Overdue</button>
-    </div>
+  <div class="flex items-center justify-between mb-4">
+    <div><h1 class="text-2xl font-bold text-gray-900">Payments</h1><p class="text-gray-500 text-sm">Track all payment activity</p></div>
+  </div>
+  <div class="flex gap-2 mb-4" id="payment-filters">
+    <button onclick="filterPayments('all')" class="pay-filter px-4 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white transition">All</button>
+    <button onclick="filterPayments('pending')" class="pay-filter px-4 py-1.5 rounded-lg text-sm font-medium bg-white text-gray-600 border hover:bg-gray-50 transition">Pending</button>
+    <button onclick="filterPayments('completed')" class="pay-filter px-4 py-1.5 rounded-lg text-sm font-medium bg-white text-gray-600 border hover:bg-gray-50 transition">Completed</button>
+    <button onclick="filterPayments('overdue')" class="pay-filter px-4 py-1.5 rounded-lg text-sm font-medium bg-white text-gray-600 border hover:bg-gray-50 transition">Overdue</button>
   </div>
   <div class="bg-white rounded-xl border overflow-hidden">
     <table class="w-full">
@@ -100,169 +246,569 @@
         <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Due Date</th>
         <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Paid On</th>
         <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
+        <th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Action</th>
       </tr></thead>
-      <tbody class="divide-y">
-        <tr class="hover:bg-gray-50"><td class="px-6 py-4"><p class="text-sm font-medium text-gray-900">Rahul Sharma</p><p class="text-xs text-gray-500">9876543210</p></td><td class="px-6 py-4 text-sm font-medium text-gray-900">₹1,500</td><td class="px-6 py-4 text-sm text-gray-600">01 May 2026</td><td class="px-6 py-4 text-sm text-gray-600">29 Apr 2026</td><td class="px-6 py-4"><span class="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-700">completed</span></td></tr>
-        <tr class="hover:bg-gray-50"><td class="px-6 py-4"><p class="text-sm font-medium text-gray-900">Amit Kumar</p><p class="text-xs text-gray-500">9876543212</p></td><td class="px-6 py-4 text-sm font-medium text-gray-900">₹2,000</td><td class="px-6 py-4 text-sm text-gray-600">10 Jun 2026</td><td class="px-6 py-4 text-sm text-gray-600">-</td><td class="px-6 py-4"><span class="text-xs px-2 py-1 rounded-full font-medium bg-yellow-100 text-yellow-700">pending</span></td></tr>
-        <tr class="hover:bg-gray-50"><td class="px-6 py-4"><p class="text-sm font-medium text-gray-900">Sneha Gupta</p><p class="text-xs text-gray-500">9876543213</p></td><td class="px-6 py-4 text-sm font-medium text-gray-900">₹1,500</td><td class="px-6 py-4 text-sm text-gray-600">20 May 2026</td><td class="px-6 py-4 text-sm text-gray-600">-</td><td class="px-6 py-4"><span class="text-xs px-2 py-1 rounded-full font-medium bg-red-100 text-red-700">overdue</span></td></tr>
-        <tr class="hover:bg-gray-50"><td class="px-6 py-4"><p class="text-sm font-medium text-gray-900">Vikram Singh</p><p class="text-xs text-gray-500">9876543214</p></td><td class="px-6 py-4 text-sm font-medium text-gray-900">₹2,000</td><td class="px-6 py-4 text-sm text-gray-600">05 Jun 2026</td><td class="px-6 py-4 text-sm text-gray-600">-</td><td class="px-6 py-4"><span class="text-xs px-2 py-1 rounded-full font-medium bg-yellow-100 text-yellow-700">pending</span></td></tr>
-      </tbody>
+      <tbody id="payments-table" class="divide-y"></tbody>
     </table>
   </div>
 </div>
 
 <!-- CHECK-INS -->
 <div id="page-checkins" class="page">
-  <h1 class="text-2xl font-bold text-gray-900 mb-2">Check-in System</h1>
+  <h1 class="text-2xl font-bold text-gray-900 mb-1">Check-in System</h1>
   <p class="text-gray-500 mb-6">UPI-style reverse scan. Members scan your printed QR at the desk.</p>
   <div class="bg-white rounded-xl border p-6 mb-6">
     <div class="flex items-center justify-between mb-4">
-      <div><h2 class="text-lg font-semibold text-gray-900">Gym Status</h2><p class="text-sm text-gray-500">Active mode: Overdue members blocked from scanning</p></div>
-      <div class="px-4 py-2 rounded-full text-sm font-bold bg-green-100 text-green-700">CHECKED IN</div>
+      <div><h2 class="text-lg font-semibold text-gray-900">Gym Status</h2><p class="text-sm text-gray-500" id="gym-mode-desc">Currently: Overdue members are blocked from scanning</p></div>
+      <div id="gym-mode-badge" class="px-4 py-2 rounded-full text-sm font-bold bg-green-100 text-green-700">CHECKED IN</div>
     </div>
     <div class="flex gap-3">
-      <button class="flex-1 py-3 rounded-xl text-sm font-bold bg-green-600 text-white">Check In (Start Enforcing)</button>
-      <button class="flex-1 py-3 rounded-xl text-sm font-bold bg-orange-50 text-orange-700 border-2 border-orange-300">Check Out (Stop Enforcing)</button>
+      <button id="btn-checkin" onclick="setGymMode('checked-in')" class="flex-1 py-3 rounded-xl text-sm font-bold bg-green-600 text-white hover:bg-green-700 transition">✅ Check In (Start Enforcing)</button>
+      <button id="btn-checkout" onclick="setGymMode('checked-out')" class="flex-1 py-3 rounded-xl text-sm font-bold bg-orange-50 text-orange-700 border-2 border-orange-300 hover:bg-orange-100 transition">🔓 Check Out (Stop Enforcing)</button>
     </div>
   </div>
-  <div class="bg-red-50 rounded-xl border border-red-200 p-6 mb-6">
-    <h2 class="text-lg font-semibold text-red-800 mb-3">Early Birds — Overdue Alert (2)</h2>
-    <div class="space-y-2">
+  <div id="early-birds-section" class="bg-red-50 rounded-xl border border-red-200 p-6 mb-6">
+    <h2 class="text-lg font-semibold text-red-800 mb-3">⚠️ Early Birds — Overdue Alert (<span id="early-count">2</span>)</h2>
+    <div class="space-y-2" id="early-birds-list">
       <div class="flex items-center justify-between bg-white p-3 rounded-lg border border-red-200"><div><p class="font-medium text-gray-900">Deepak Yadav</p><p class="text-sm text-gray-500">9876543216</p></div><div class="text-right"><p class="text-sm font-medium text-red-600">₹2,000 overdue</p><p class="text-xs text-gray-500">Scanned at 6:15 AM</p></div></div>
       <div class="flex items-center justify-between bg-white p-3 rounded-lg border border-red-200"><div><p class="font-medium text-gray-900">Sneha Gupta</p><p class="text-sm text-gray-500">9876543213</p></div><div class="text-right"><p class="text-sm font-medium text-red-600">₹1,500 overdue</p><p class="text-xs text-gray-500">Scanned at 6:45 AM</p></div></div>
     </div>
   </div>
+  <!-- QR Code Display -->
+  <div class="bg-white rounded-xl border p-6 mb-6">
+    <h2 class="font-semibold text-gray-900 mb-3">📱 Your Gym QR Code</h2>
+    <div class="flex items-center gap-6">
+      <div class="w-40 h-40 bg-gray-100 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center">
+        <div class="text-center"><span class="text-5xl">📷</span><p class="text-xs text-gray-400 mt-2">QR Preview</p></div>
+      </div>
+      <div>
+        <p class="text-sm text-gray-600 mb-2">Print this QR and place it at the front desk.</p>
+        <p class="text-sm text-gray-600 mb-3">Members scan this to check in.</p>
+        <button onclick="showToast('QR Downloaded','QR code image saved to Downloads.')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">Download QR Image</button>
+      </div>
+    </div>
+  </div>
   <div class="bg-white rounded-xl border overflow-hidden">
-    <div class="px-6 py-4 border-b bg-gray-50"><h2 class="font-semibold text-gray-900">Today's Check-ins (5)</h2></div>
+    <div class="px-6 py-4 border-b bg-gray-50 flex justify-between items-center"><h2 class="font-semibold text-gray-900">Today's Check-ins</h2><span class="text-sm text-gray-500" id="checkin-total">5 check-ins</span></div>
     <table class="w-full"><thead class="border-b"><tr><th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Member</th><th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Phone</th><th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Time</th><th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th></tr></thead>
-    <tbody class="divide-y">
-      <tr class="hover:bg-gray-50"><td class="px-6 py-3 text-sm font-medium text-gray-900">Rahul Sharma</td><td class="px-6 py-3 text-sm text-gray-600">9876543210</td><td class="px-6 py-3 text-sm text-gray-600">5:32 AM</td><td class="px-6 py-3"><span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">Checked in</span></td></tr>
-      <tr class="hover:bg-gray-50"><td class="px-6 py-3 text-sm font-medium text-gray-900">Priya Patel</td><td class="px-6 py-3 text-sm text-gray-600">9876543211</td><td class="px-6 py-3 text-sm text-gray-600">5:48 AM</td><td class="px-6 py-3"><span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">Checked in</span></td></tr>
-      <tr class="bg-red-50"><td class="px-6 py-3 text-sm font-medium text-gray-900">Deepak Yadav</td><td class="px-6 py-3 text-sm text-gray-600">9876543216</td><td class="px-6 py-3 text-sm text-gray-600">6:15 AM</td><td class="px-6 py-3"><span class="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700 font-medium">Overdue (₹2,000)</span></td></tr>
-      <tr class="hover:bg-gray-50"><td class="px-6 py-3 text-sm font-medium text-gray-900">Vikram Singh</td><td class="px-6 py-3 text-sm text-gray-600">9876543214</td><td class="px-6 py-3 text-sm text-gray-600">6:22 AM</td><td class="px-6 py-3"><span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">Checked in</span></td></tr>
-      <tr class="hover:bg-gray-50"><td class="px-6 py-3 text-sm font-medium text-gray-900">Amit Kumar</td><td class="px-6 py-3 text-sm text-gray-600">9876543212</td><td class="px-6 py-3 text-sm text-gray-600">6:45 AM</td><td class="px-6 py-3"><span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">Checked in</span></td></tr>
+    <tbody class="divide-y" id="checkins-table">
+      <tr class="hover:bg-gray-50"><td class="px-6 py-3 text-sm font-medium text-gray-900">Rahul Sharma</td><td class="px-6 py-3 text-sm text-gray-600">9876543210</td><td class="px-6 py-3 text-sm text-gray-600">5:32 AM</td><td class="px-6 py-3"><span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">✅ Clear</span></td></tr>
+      <tr class="hover:bg-gray-50"><td class="px-6 py-3 text-sm font-medium text-gray-900">Priya Patel</td><td class="px-6 py-3 text-sm text-gray-600">9876543211</td><td class="px-6 py-3 text-sm text-gray-600">5:48 AM</td><td class="px-6 py-3"><span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">✅ Clear</span></td></tr>
+      <tr class="bg-red-50"><td class="px-6 py-3 text-sm font-medium text-gray-900">Deepak Yadav</td><td class="px-6 py-3 text-sm text-gray-600">9876543216</td><td class="px-6 py-3 text-sm text-gray-600">6:15 AM</td><td class="px-6 py-3"><span class="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700 font-medium">⚠️ Overdue ₹2,000</span></td></tr>
+      <tr class="hover:bg-gray-50"><td class="px-6 py-3 text-sm font-medium text-gray-900">Vikram Singh</td><td class="px-6 py-3 text-sm text-gray-600">9876543214</td><td class="px-6 py-3 text-sm text-gray-600">6:22 AM</td><td class="px-6 py-3"><span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">✅ Clear</span></td></tr>
+      <tr class="hover:bg-gray-50"><td class="px-6 py-3 text-sm font-medium text-gray-900">Amit Kumar</td><td class="px-6 py-3 text-sm text-gray-600">9876543212</td><td class="px-6 py-3 text-sm text-gray-600">6:45 AM</td><td class="px-6 py-3"><span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">✅ Clear</span></td></tr>
     </tbody></table>
   </div>
 </div>
 
 <!-- RETENTION -->
 <div id="page-retention" class="page">
-  <h1 class="text-2xl font-bold text-gray-900 mb-2">Retention Risk Dashboard</h1>
-  <p class="text-gray-500 mb-6">Members flagged based on inactivity. Send a friendly nudge before they drop out.</p>
+  <h1 class="text-2xl font-bold text-gray-900 mb-1">Retention Risk Dashboard</h1>
+  <p class="text-gray-500 mb-6">Members flagged by inactivity. One-click WhatsApp nudge.</p>
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-    <div class="bg-red-50 border border-red-200 rounded-xl p-5"><p class="text-sm font-medium text-red-600">High Risk</p><p class="text-3xl font-bold text-red-700 mt-1">2</p><p class="text-xs text-red-500 mt-1">Inactive 15+ days</p></div>
-    <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-5"><p class="text-sm font-medium text-yellow-600">Medium Risk</p><p class="text-3xl font-bold text-yellow-700 mt-1">2</p><p class="text-xs text-yellow-500 mt-1">Inactive 8-14 days</p></div>
-    <div class="bg-blue-50 border border-blue-200 rounded-xl p-5"><p class="text-sm font-medium text-blue-600">Low Risk</p><p class="text-3xl font-bold text-blue-700 mt-1">1</p><p class="text-xs text-blue-500 mt-1">Inactive 5-7 days</p></div>
+    <div class="bg-red-50 border border-red-200 rounded-xl p-5"><p class="text-sm font-medium text-red-600">🔴 High Risk</p><p class="text-3xl font-bold text-red-700 mt-1">2</p><p class="text-xs text-red-500 mt-1">Inactive 15+ days</p></div>
+    <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-5"><p class="text-sm font-medium text-yellow-600">🟡 Medium Risk</p><p class="text-3xl font-bold text-yellow-700 mt-1">2</p><p class="text-xs text-yellow-500 mt-1">Inactive 8-14 days</p></div>
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-5"><p class="text-sm font-medium text-blue-600">🔵 Low Risk</p><p class="text-3xl font-bold text-blue-700 mt-1">1</p><p class="text-xs text-blue-500 mt-1">Inactive 5-7 days</p></div>
   </div>
   <div class="bg-white rounded-xl border overflow-hidden mb-6">
     <table class="w-full"><thead class="bg-gray-50 border-b"><tr><th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Member</th><th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Days Inactive</th><th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Last Seen</th><th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Risk</th><th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Action</th></tr></thead>
-    <tbody class="divide-y">
-      <tr class="hover:bg-gray-50"><td class="px-6 py-4"><p class="text-sm font-medium text-gray-900">Sneha Gupta</p><p class="text-xs text-gray-500">9876543213</p></td><td class="px-6 py-4 text-sm font-semibold text-gray-900">22 days</td><td class="px-6 py-4 text-sm text-gray-600">12 May</td><td class="px-6 py-4"><span class="text-xs px-2 py-1 rounded-full font-medium bg-red-100 text-red-700">high</span></td><td class="px-6 py-4"><button class="bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium">Send WhatsApp Nudge</button></td></tr>
-      <tr class="hover:bg-gray-50"><td class="px-6 py-4"><p class="text-sm font-medium text-gray-900">Deepak Yadav</p><p class="text-xs text-gray-500">9876543216</p></td><td class="px-6 py-4 text-sm font-semibold text-gray-900">18 days</td><td class="px-6 py-4 text-sm text-gray-600">16 May</td><td class="px-6 py-4"><span class="text-xs px-2 py-1 rounded-full font-medium bg-red-100 text-red-700">high</span></td><td class="px-6 py-4"><button class="bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium">Send WhatsApp Nudge</button></td></tr>
-      <tr class="hover:bg-gray-50"><td class="px-6 py-4"><p class="text-sm font-medium text-gray-900">Neha Verma</p><p class="text-xs text-gray-500">9876543217</p></td><td class="px-6 py-4 text-sm font-semibold text-gray-900">14 days</td><td class="px-6 py-4 text-sm text-gray-600">20 May</td><td class="px-6 py-4"><span class="text-xs px-2 py-1 rounded-full font-medium bg-yellow-100 text-yellow-700">medium</span></td><td class="px-6 py-4"><span class="text-xs text-green-600 font-medium">Nudge sent ✓</span></td></tr>
-      <tr class="hover:bg-gray-50"><td class="px-6 py-4"><p class="text-sm font-medium text-gray-900">Kavita Nair</p><p class="text-xs text-gray-500">9876543219</p></td><td class="px-6 py-4 text-sm font-semibold text-gray-900">7 days</td><td class="px-6 py-4 text-sm text-gray-600">27 May</td><td class="px-6 py-4"><span class="text-xs px-2 py-1 rounded-full font-medium bg-blue-100 text-blue-700">low</span></td><td class="px-6 py-4"><button class="bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium">Send WhatsApp Nudge</button></td></tr>
-    </tbody></table>
+    <tbody class="divide-y" id="retention-table"></tbody></table>
   </div>
   <div class="bg-green-50 border border-green-200 rounded-xl p-6">
-    <h3 class="font-semibold text-green-900 mb-2">Auto-Nudge Message Preview</h3>
+    <h3 class="font-semibold text-green-900 mb-2">📨 Auto-Nudge Message Template</h3>
     <div class="bg-white rounded-lg p-4 border border-green-200"><p class="text-sm text-gray-700 italic">"Hey [Name], haven't seen you at the gym lately! 💪 Here's a free 1-day guest pass for a friend to bring some motivation this week. See you soon!"</p></div>
   </div>
 </div>
 
 <!-- REFERRALS -->
 <div id="page-referrals" class="page">
-  <h1 class="text-2xl font-bold text-gray-900 mb-2">Viral Referral Engine</h1>
-  <p class="text-gray-500 mb-6">Members who hit milestones get shareable graphics. Successful referrals earn discounts.</p>
+  <h1 class="text-2xl font-bold text-gray-900 mb-1">Viral Referral Engine</h1>
+  <p class="text-gray-500 mb-6">Milestone-based shareable graphics. Referrals earn discounts.</p>
   <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
     <div class="bg-blue-50 border border-blue-200 rounded-xl p-5"><p class="text-sm font-medium text-blue-600">Total Referral Links</p><p class="text-3xl font-bold text-blue-700 mt-1">4</p></div>
     <div class="bg-green-50 border border-green-200 rounded-xl p-5"><p class="text-sm font-medium text-green-600">Conversions</p><p class="text-3xl font-bold text-green-700 mt-1">3</p></div>
-    <div class="bg-purple-50 border border-purple-200 rounded-xl p-5"><p class="text-sm font-medium text-purple-600">Discounts Given</p><p class="text-3xl font-bold text-purple-700 mt-1">1</p></div>
-    <div class="bg-orange-50 border border-orange-200 rounded-xl p-5"><p class="text-sm font-medium text-orange-600">Milestones Achieved</p><p class="text-3xl font-bold text-orange-700 mt-1">3</p></div>
+    <div class="bg-purple-50 border border-purple-200 rounded-xl p-5"><p class="text-sm font-medium text-purple-600">Discounts Given</p><p class="text-3xl font-bold text-purple-700 mt-1">₹4,500</p></div>
+    <div class="bg-orange-50 border border-orange-200 rounded-xl p-5"><p class="text-sm font-medium text-orange-600">Milestones Achieved</p><p class="text-3xl font-bold text-orange-700 mt-1">6</p></div>
   </div>
   <div class="bg-white rounded-xl border p-6 mb-6">
-    <h2 class="text-lg font-semibold text-gray-900 mb-4">Recent Milestones</h2>
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">🏆 Recent Milestones</h2>
     <div class="space-y-3">
-      <div class="flex items-center justify-between p-3 bg-orange-50 rounded-lg"><div class="flex items-center gap-3"><span class="text-2xl">🏆</span><div><p class="font-medium text-gray-900">Rahul Sharma</p><p class="text-sm text-gray-500">6 Months Active</p></div></div><div class="text-right"><p class="text-xs text-orange-600 font-medium">Shareable graphic unlocked</p></div></div>
-      <div class="flex items-center justify-between p-3 bg-orange-50 rounded-lg"><div class="flex items-center gap-3"><span class="text-2xl">🏆</span><div><p class="font-medium text-gray-900">Amit Kumar</p><p class="text-sm text-gray-500">30-Day Streak</p></div></div><div class="text-right"><p class="text-xs text-orange-600 font-medium">Shareable graphic unlocked</p></div></div>
+      <div class="flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl border border-orange-100"><div class="flex items-center gap-3"><span class="text-3xl">🥇</span><div><p class="font-semibold text-gray-900">Rahul Sharma</p><p class="text-sm text-gray-500">6 Months Active — consistency king!</p></div></div><div class="text-right"><span class="text-xs px-3 py-1 rounded-full font-medium bg-orange-100 text-orange-700">Graphic unlocked</span></div></div>
+      <div class="flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl border border-orange-100"><div class="flex items-center gap-3"><span class="text-3xl">🔥</span><div><p class="font-semibold text-gray-900">Amit Kumar</p><p class="text-sm text-gray-500">30-Day Streak — unstoppable!</p></div></div><div class="text-right"><span class="text-xs px-3 py-1 rounded-full font-medium bg-orange-100 text-orange-700">Graphic unlocked</span></div></div>
+      <div class="flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl border border-orange-100"><div class="flex items-center gap-3"><span class="text-3xl">💪</span><div><p class="font-semibold text-gray-900">Priya Patel</p><p class="text-sm text-gray-500">100th Check-in — century!</p></div></div><div class="text-right"><span class="text-xs px-3 py-1 rounded-full font-medium bg-orange-100 text-orange-700">Graphic unlocked</span></div></div>
     </div>
+  </div>
+  <div class="bg-white rounded-xl border overflow-hidden">
+    <div class="px-6 py-4 bg-gray-50 border-b"><h2 class="font-semibold text-gray-900">Referral Tracking</h2></div>
+    <table class="w-full"><thead class="border-b"><tr><th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Referrer</th><th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Code</th><th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Signups</th><th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Discount Earned</th></tr></thead>
+    <tbody class="divide-y">
+      <tr class="hover:bg-gray-50"><td class="px-6 py-3 text-sm font-medium text-gray-900">Rahul Sharma</td><td class="px-6 py-3"><code class="text-xs bg-gray-100 px-2 py-1 rounded">RAHUL-GYM-2K26</code></td><td class="px-6 py-3 text-sm text-gray-600">2</td><td class="px-6 py-3 text-sm font-medium text-green-600">₹3,000</td></tr>
+      <tr class="hover:bg-gray-50"><td class="px-6 py-3 text-sm font-medium text-gray-900">Amit Kumar</td><td class="px-6 py-3"><code class="text-xs bg-gray-100 px-2 py-1 rounded">AMIT-GYM-2K26</code></td><td class="px-6 py-3 text-sm text-gray-600">1</td><td class="px-6 py-3 text-sm font-medium text-green-600">₹1,500</td></tr>
+      <tr class="hover:bg-gray-50"><td class="px-6 py-3 text-sm font-medium text-gray-900">Priya Patel</td><td class="px-6 py-3"><code class="text-xs bg-gray-100 px-2 py-1 rounded">PRIYA-GYM-2K26</code></td><td class="px-6 py-3 text-sm text-gray-600">0</td><td class="px-6 py-3 text-sm text-gray-400">—</td></tr>
+      <tr class="hover:bg-gray-50"><td class="px-6 py-3 text-sm font-medium text-gray-900">Vikram Singh</td><td class="px-6 py-3"><code class="text-xs bg-gray-100 px-2 py-1 rounded">VIKRAM-GYM-2K26</code></td><td class="px-6 py-3 text-sm text-gray-600">0</td><td class="px-6 py-3 text-sm text-gray-400">—</td></tr>
+    </tbody></table>
   </div>
 </div>
 
 <!-- PARTNERS -->
 <div id="page-partners" class="page">
-  <div class="flex items-center justify-between mb-2"><h1 class="text-2xl font-bold text-gray-900">Local Perks & Partners</h1><button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">+ Add Partner</button></div>
-  <p class="text-gray-500 mb-6">Partner with local businesses to offer exclusive perks to members.</p>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <div class="bg-white rounded-xl border p-6"><div class="flex items-start justify-between mb-3"><div><h3 class="font-semibold text-gray-900 text-lg">Green Leaf Cafe</h3><span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Food & Drinks</span></div><div class="text-right"><span class="text-2xl font-bold text-green-600">10%</span><p class="text-xs text-gray-500">discount</p></div></div><p class="text-sm text-gray-600 mb-4">10% off any smoothie or salad bowl</p><div class="flex items-center justify-between pt-3 border-t"><p class="text-sm text-gray-500"><span class="font-semibold text-gray-900">23</span> redemptions</p><span class="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-700">Active</span></div></div>
-    <div class="bg-white rounded-xl border p-6"><div class="flex items-start justify-between mb-3"><div><h3 class="font-semibold text-gray-900 text-lg">SportZone Apparel</h3><span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Sportswear</span></div><div class="text-right"><span class="text-2xl font-bold text-green-600">15%</span><p class="text-xs text-gray-500">discount</p></div></div><p class="text-sm text-gray-600 mb-4">15% off gym wear & accessories</p><div class="flex items-center justify-between pt-3 border-t"><p class="text-sm text-gray-500"><span class="font-semibold text-gray-900">17</span> redemptions</p><span class="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-700">Active</span></div></div>
-    <div class="bg-white rounded-xl border p-6"><div class="flex items-start justify-between mb-3"><div><h3 class="font-semibold text-gray-900 text-lg">PhysioFlex Clinic</h3><span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Health</span></div><div class="text-right"><span class="text-2xl font-bold text-green-600">Free</span><p class="text-xs text-gray-500">consult</p></div></div><p class="text-sm text-gray-600 mb-4">Free first consultation for gym members</p><div class="flex items-center justify-between pt-3 border-t"><p class="text-sm text-gray-500"><span class="font-semibold text-gray-900">8</span> redemptions</p><span class="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-700">Active</span></div></div>
-    <div class="bg-white rounded-xl border p-6"><div class="flex items-start justify-between mb-3"><div><h3 class="font-semibold text-gray-900 text-lg">Protein Palace</h3><span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Supplements</span></div><div class="text-right"><span class="text-2xl font-bold text-green-600">10%</span><p class="text-xs text-gray-500">discount</p></div></div><p class="text-sm text-gray-600 mb-4">10% off whey protein & BCAA</p><div class="flex items-center justify-between pt-3 border-t"><p class="text-sm text-gray-500"><span class="font-semibold text-gray-900">31</span> redemptions</p><span class="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-700">Active</span></div></div>
-  </div>
+  <div class="flex items-center justify-between mb-1"><h1 class="text-2xl font-bold text-gray-900">Local Perks & Partners</h1><button onclick="openModal('modal-partner')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">+ Add Partner</button></div>
+  <p class="text-gray-500 mb-6">Cross-promotional deals with local businesses for your members.</p>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="partners-grid"></div>
 </div>
 
 <!-- POLLS -->
 <div id="page-polls" class="page">
-  <div class="flex items-center justify-between mb-2"><h1 class="text-2xl font-bold text-gray-900">Polls & Wishlist</h1><button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">+ Create Poll</button></div>
-  <p class="text-gray-500 mb-6">Let members vote on equipment, timings, and more.</p>
-  <div class="bg-white rounded-xl border p-6 mb-6">
-    <div class="flex items-start justify-between mb-2"><div><div class="flex items-center gap-2"><h3 class="text-lg font-semibold text-gray-900">Which equipment should we buy next?</h3><span class="text-xs px-2 py-0.5 rounded-full font-medium bg-green-100 text-green-700">Active</span></div><p class="text-sm text-gray-500 mt-1">Budget: ₹80,000. Your vote decides!</p></div><p class="text-sm text-gray-400">52 votes</p></div>
-    <div class="mt-4 space-y-3">
-      <div><div class="flex items-center justify-between mb-1"><span class="text-sm text-gray-700">Leg Press Machine</span><span class="text-sm text-gray-500">18 (35%)</span></div><div class="w-full bg-gray-100 rounded-full h-3"><div class="h-3 rounded-full bg-blue-200" style="width:35%"></div></div></div>
-      <div><div class="flex items-center justify-between mb-1"><span class="text-sm text-gray-700">Stairmaster</span><span class="text-sm text-gray-500">12 (23%)</span></div><div class="w-full bg-gray-100 rounded-full h-3"><div class="h-3 rounded-full bg-blue-200" style="width:23%"></div></div></div>
-      <div><div class="flex items-center justify-between mb-1"><span class="text-sm font-semibold text-gray-900">🏆 Dumbbell Set (5-50kg)</span><span class="text-sm text-gray-500">22 (42%)</span></div><div class="w-full bg-gray-100 rounded-full h-3"><div class="h-3 rounded-full bg-blue-600" style="width:42%"></div></div></div>
-    </div>
-  </div>
+  <div class="flex items-center justify-between mb-1"><h1 class="text-2xl font-bold text-gray-900">Polls & Wishlist</h1><button onclick="openModal('modal-poll')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">+ Create Poll</button></div>
+  <p class="text-gray-500 mb-6">Let members vote on equipment, timings, and decisions.</p>
+  <div id="polls-container" class="space-y-6"></div>
 </div>
 
 <!-- ANNOUNCEMENTS -->
 <div id="page-announcements" class="page">
-  <div class="flex items-center justify-between mb-6"><h1 class="text-2xl font-bold text-gray-900">Announcements</h1><button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">+ New Announcement</button></div>
-  <div class="space-y-4">
-    <div class="bg-white p-6 rounded-xl border"><h3 class="font-semibold text-gray-900">New Batch Timings</h3><p class="text-sm text-gray-500 mt-1">By Coach Rajesh · 28 May 2026</p><p class="mt-3 text-gray-700">Starting June 1st, we are adding a new morning batch from 5:30 AM to 7:00 AM. Register at the front desk if interested.</p></div>
-    <div class="bg-white p-6 rounded-xl border"><h3 class="font-semibold text-gray-900">Maintenance Day - AC Servicing</h3><p class="text-sm text-gray-500 mt-1">By Admin · 25 May 2026</p><p class="mt-3 text-gray-700">The gym will close at 2 PM on Saturday (June 7) for AC maintenance. Morning batches will run as usual.</p></div>
-  </div>
+  <div class="flex items-center justify-between mb-4"><h1 class="text-2xl font-bold text-gray-900">Announcements</h1><button onclick="openModal('modal-announcement')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">+ New Announcement</button></div>
+  <div class="space-y-4" id="announcements-list"></div>
 </div>
 
 <!-- QUERIES -->
 <div id="page-queries" class="page">
-  <h1 class="text-2xl font-bold text-gray-900 mb-6">Member Queries</h1>
-  <div class="space-y-4">
-    <div class="bg-white p-6 rounded-xl border">
-      <div class="flex items-center gap-2"><h3 class="font-semibold text-gray-900">Can I freeze my membership?</h3><span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">private</span></div>
-      <p class="text-sm text-gray-500 mt-1">By Sneha Gupta · 30 May 2026</p>
-      <p class="mt-3 text-gray-700">I'll be traveling for 2 weeks. Can I pause my membership instead of paying?</p>
-      <div class="mt-4 flex gap-2"><input type="text" placeholder="Type a reply..." class="flex-1 px-3 py-2 border rounded-lg text-sm"><button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">Reply</button></div>
-    </div>
+  <h1 class="text-2xl font-bold text-gray-900 mb-1">Member Queries</h1>
+  <p class="text-gray-500 mb-4">Respond to member questions and issues.</p>
+  <div class="flex gap-2 mb-4">
+    <button onclick="filterQueries('all')" class="q-filter px-4 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white transition">All</button>
+    <button onclick="filterQueries('open')" class="q-filter px-4 py-1.5 rounded-lg text-sm font-medium bg-white text-gray-600 border hover:bg-gray-50 transition">Open</button>
+    <button onclick="filterQueries('resolved')" class="q-filter px-4 py-1.5 rounded-lg text-sm font-medium bg-white text-gray-600 border hover:bg-gray-50 transition">Resolved</button>
   </div>
+  <div class="space-y-4" id="queries-list"></div>
 </div>
 
 <!-- CLOSURES -->
 <div id="page-closures" class="page">
-  <div class="flex items-center justify-between mb-6"><h1 class="text-2xl font-bold text-gray-900">Closure Schedule</h1><button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium">+ Add Closure</button></div>
+  <div class="flex items-center justify-between mb-4"><h1 class="text-2xl font-bold text-gray-900">Closure Schedule</h1><button onclick="openAddClosure()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">+ Add Closure</button></div>
   <div class="bg-white rounded-xl border overflow-hidden">
     <table class="w-full"><thead class="bg-gray-50 border-b"><tr><th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Title</th><th class="text-left px-6 py-3 text-sm font-medium text-gray-500">From</th><th class="text-left px-6 py-3 text-sm font-medium text-gray-500">To</th><th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Reason</th><th class="text-left px-6 py-3 text-sm font-medium text-gray-500">Actions</th></tr></thead>
-    <tbody class="divide-y">
-      <tr class="hover:bg-gray-50"><td class="px-6 py-4 text-sm font-medium text-gray-900">Annual Maintenance</td><td class="px-6 py-4 text-sm text-gray-600">10 Jul</td><td class="px-6 py-4 text-sm text-gray-600">12 Jul</td><td class="px-6 py-4 text-sm text-gray-600">Equipment servicing</td><td class="px-6 py-4 flex gap-2"><button class="text-xs px-2 py-1 text-blue-600 hover:bg-blue-50 rounded">Edit</button><button class="text-xs px-2 py-1 text-red-600 hover:bg-red-50 rounded">Delete</button></td></tr>
-      <tr class="hover:bg-gray-50"><td class="px-6 py-4 text-sm font-medium text-gray-900">Independence Day</td><td class="px-6 py-4 text-sm text-gray-600">15 Aug</td><td class="px-6 py-4 text-sm text-gray-600">15 Aug</td><td class="px-6 py-4 text-sm text-gray-600">National Holiday</td><td class="px-6 py-4 flex gap-2"><button class="text-xs px-2 py-1 text-blue-600 hover:bg-blue-50 rounded">Edit</button><button class="text-xs px-2 py-1 text-red-600 hover:bg-red-50 rounded">Delete</button></td></tr>
-      <tr class="hover:bg-gray-50"><td class="px-6 py-4 text-sm font-medium text-gray-900">Diwali Break</td><td class="px-6 py-4 text-sm text-gray-600">20 Oct</td><td class="px-6 py-4 text-sm text-gray-600">23 Oct</td><td class="px-6 py-4 text-sm text-gray-600">Festival holidays</td><td class="px-6 py-4 flex gap-2"><button class="text-xs px-2 py-1 text-blue-600 hover:bg-blue-50 rounded">Edit</button><button class="text-xs px-2 py-1 text-red-600 hover:bg-red-50 rounded">Delete</button></td></tr>
-      <tr class="hover:bg-gray-50"><td class="px-6 py-4 text-sm font-medium text-gray-900">Christmas & New Year</td><td class="px-6 py-4 text-sm text-gray-600">25 Dec</td><td class="px-6 py-4 text-sm text-gray-600">01 Jan</td><td class="px-6 py-4 text-sm text-gray-600">Year-end break</td><td class="px-6 py-4 flex gap-2"><button class="text-xs px-2 py-1 text-blue-600 hover:bg-blue-50 rounded">Edit</button><button class="text-xs px-2 py-1 text-red-600 hover:bg-red-50 rounded">Delete</button></td></tr>
-    </tbody></table>
+    <tbody id="closures-table" class="divide-y"></tbody></table>
   </div>
 </div>
 
 </main>
 
 <script>
-function showPage(name) {
+// ===== DATA STORE =====
+let members = [
+  {name:'Rahul Sharma',email:'rahul@email.com',phone:'9876543210',plan:'₹1,500/mo',status:'active',joined:'15 Nov 2025'},
+  {name:'Priya Patel',email:'priya@email.com',phone:'9876543211',plan:'₹4,000/qt',status:'active',joined:'01 Dec 2025'},
+  {name:'Amit Kumar',email:'amit@email.com',phone:'9876543212',plan:'₹1,500/mo',status:'active',joined:'10 Jan 2026'},
+  {name:'Sneha Gupta',email:'sneha@email.com',phone:'9876543213',plan:'₹1,500/mo',status:'inactive',joined:'20 Feb 2026'},
+  {name:'Vikram Singh',email:'vikram@email.com',phone:'9876543214',plan:'₹2,000/mo',status:'active',joined:'05 Mar 2026'},
+  {name:'Deepak Yadav',email:'deepak@email.com',phone:'9876543216',plan:'₹1,500/mo',status:'active',joined:'12 Mar 2026'},
+  {name:'Neha Verma',email:'neha@email.com',phone:'9876543217',plan:'₹4,000/qt',status:'active',joined:'25 Mar 2026'},
+  {name:'Kavita Nair',email:'kavita@email.com',phone:'9876543219',plan:'₹1,500/mo',status:'active',joined:'01 Apr 2026'},
+];
+
+let payments = [
+  {name:'Rahul Sharma',phone:'9876543210',amount:'₹1,500',due:'01 May 2026',paid:'29 Apr 2026',status:'completed'},
+  {name:'Priya Patel',phone:'9876543211',amount:'₹4,000',due:'01 Jun 2026',paid:'30 May 2026',status:'completed'},
+  {name:'Amit Kumar',phone:'9876543212',amount:'₹2,000',due:'10 Jun 2026',paid:'-',status:'pending'},
+  {name:'Sneha Gupta',phone:'9876543213',amount:'₹1,500',due:'20 May 2026',paid:'-',status:'overdue'},
+  {name:'Vikram Singh',phone:'9876543214',amount:'₹2,000',due:'05 Jun 2026',paid:'-',status:'pending'},
+  {name:'Deepak Yadav',phone:'9876543216',amount:'₹1,500',due:'12 May 2026',paid:'-',status:'overdue'},
+  {name:'Neha Verma',phone:'9876543217',amount:'₹4,000',due:'25 Jun 2026',paid:'-',status:'pending'},
+  {name:'Kavita Nair',phone:'9876543219',amount:'₹1,500',due:'01 Jul 2026',paid:'-',status:'pending'},
+];
+
+let announcements = [
+  {title:'New Batch Timings',author:'Coach Rajesh',date:'28 May 2026',msg:'Starting June 1st, we are adding a new morning batch from 5:30 AM to 7:00 AM. Register at the front desk if interested.'},
+  {title:'Maintenance Day - AC Servicing',author:'Admin',date:'25 May 2026',msg:'The gym will close at 2 PM on Saturday (June 7) for AC maintenance. Morning batches will run as usual.'},
+  {title:'Summer Challenge Starts!',author:'Coach Rajesh',date:'20 May 2026',msg:'Join our 30-day summer fitness challenge! Track your workouts, compete with friends, and win prizes. Sign up at reception.'},
+];
+
+let queries = [
+  {from:'Sneha Gupta',date:'30 May 2026',vis:'private',q:'Can I freeze my membership?',detail:'I\'ll be traveling for 2 weeks. Can I pause my membership instead of paying?',replies:[],resolved:false},
+  {from:'Amit Kumar',date:'28 May 2026',vis:'public',q:'What protein shakes are available?',detail:'Do you sell protein shakes at the gym? What brands are available?',replies:['Yes! We have ON Gold Standard and MuscleBlaze. Available at the front desk.'],resolved:true},
+  {from:'Kavita Nair',date:'25 May 2026',vis:'private',q:'Can I switch my plan?',detail:'I want to switch from monthly to quarterly. How do I do that?',replies:[],resolved:false},
+];
+
+let closures = [
+  {title:'Annual Maintenance',from:'2026-07-10',to:'2026-07-12',reason:'Equipment servicing'},
+  {title:'Independence Day',from:'2026-08-15',to:'2026-08-15',reason:'National Holiday'},
+  {title:'Diwali Break',from:'2026-10-20',to:'2026-10-23',reason:'Festival holidays'},
+  {title:'Christmas & New Year',from:'2026-12-25',to:'2027-01-01',reason:'Year-end break'},
+];
+
+let partners = [
+  {name:'Green Leaf Cafe',cat:'Food & Drinks',offer:'10% off any smoothie or salad bowl',disc:'10%',redemptions:23},
+  {name:'SportZone Apparel',cat:'Sportswear',offer:'15% off gym wear & accessories',disc:'15%',redemptions:17},
+  {name:'PhysioFlex Clinic',cat:'Health',offer:'Free first consultation for gym members',disc:'Free',redemptions:8},
+  {name:'Protein Palace',cat:'Supplements',offer:'10% off whey protein & BCAA',disc:'10%',redemptions:31},
+];
+
+let polls = [
+  {q:'Which equipment should we buy next?',desc:'Budget: ₹80,000. Your vote decides!',status:'active',opts:[{text:'Leg Press Machine',votes:18},{text:'Stairmaster',votes:12},{text:'Dumbbell Set (5-50kg)',votes:22}]},
+  {q:'Preferred new evening batch timing?',desc:'We\'re adding a new evening slot.',status:'active',opts:[{text:'5:00 PM - 6:30 PM',votes:14},{text:'6:30 PM - 8:00 PM',votes:27},{text:'8:00 PM - 9:30 PM',votes:9}]},
+];
+
+let retentionData = [
+  {name:'Sneha Gupta',phone:'9876543213',days:22,lastSeen:'12 May',risk:'high',nudged:false},
+  {name:'Deepak Yadav',phone:'9876543216',days:18,lastSeen:'16 May',risk:'high',nudged:false},
+  {name:'Neha Verma',phone:'9876543217',days:14,lastSeen:'20 May',risk:'medium',nudged:true},
+  {name:'Ravi Mehta',phone:'9876543218',days:10,lastSeen:'24 May',risk:'medium',nudged:false},
+  {name:'Kavita Nair',phone:'9876543219',days:7,lastSeen:'27 May',risk:'low',nudged:false},
+];
+
+let gymMode = 'checked-in';
+let deleteTarget = null;
+
+// ===== PAGE NAVIGATION =====
+function showPage(name, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
-  document.querySelectorAll('.nav-link').forEach(a => {
-    a.classList.remove('bg-blue-50', 'text-blue-700');
-    a.classList.add('text-gray-600');
-  });
-  event.target.closest('.nav-link').classList.add('bg-blue-50', 'text-blue-700');
-  event.target.closest('.nav-link').classList.remove('text-gray-600');
+  document.querySelectorAll('.nav-link').forEach(a => { a.classList.remove('bg-blue-50','text-blue-700'); a.classList.add('text-gray-600'); });
+  if(el){ el.classList.add('bg-blue-50','text-blue-700'); el.classList.remove('text-gray-600'); }
 }
+
+// ===== MODAL =====
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+// ===== TOAST =====
+function showToast(title, msg) {
+  document.getElementById('toast-title').textContent = title;
+  document.getElementById('toast-msg').textContent = msg;
+  document.getElementById('toast').classList.add('show');
+  setTimeout(hideToast, 4000);
+}
+function hideToast(){ document.getElementById('toast').classList.remove('show'); }
+
+// ===== MEMBERS =====
+function renderMembers(filter='') {
+  const q = filter.toLowerCase();
+  const filtered = members.filter(m => !q || m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q) || m.phone.includes(q));
+  const tb = document.getElementById('members-table');
+  tb.innerHTML = filtered.map((m,i) => `
+    <tr class="hover:bg-gray-50">
+      <td class="px-6 py-4 text-sm font-medium text-gray-900">${m.name}</td>
+      <td class="px-6 py-4 text-sm text-gray-600">${m.email}</td>
+      <td class="px-6 py-4 text-sm text-gray-600">${m.phone}</td>
+      <td class="px-6 py-4 text-sm text-gray-600">${m.plan}</td>
+      <td class="px-6 py-4"><span class="text-xs px-2 py-1 rounded-full font-medium ${m.status==='active'?'bg-green-100 text-green-700':'bg-red-100 text-red-700'}">${m.status}</span></td>
+      <td class="px-6 py-4 flex gap-1">
+        <button onclick="toggleMemberStatus(${members.indexOf(m)})" class="text-xs px-2 py-1 rounded ${m.status==='active'?'text-red-600 hover:bg-red-50':'text-green-600 hover:bg-green-50'}">${m.status==='active'?'Deactivate':'Activate'}</button>
+        <button onclick="removeMember(${members.indexOf(m)})" class="text-xs px-2 py-1 text-red-600 hover:bg-red-50 rounded">Remove</button>
+      </td>
+    </tr>`).join('');
+  document.getElementById('member-count').textContent = `Showing ${filtered.length} of ${members.length} members`;
+  document.getElementById('stat-total').textContent = members.length;
+  document.getElementById('stat-active').textContent = members.filter(m=>m.status==='active').length;
+}
+function filterMembers(){ renderMembers(document.getElementById('member-search').value); }
+function addMember(){
+  const n=document.getElementById('m-name').value.trim(), e=document.getElementById('m-email').value.trim(), ph=document.getElementById('m-phone').value.trim(), pl=document.getElementById('m-plan');
+  if(!n||!e||!ph){ document.getElementById('m-error').classList.remove('hidden'); return; }
+  document.getElementById('m-error').classList.add('hidden');
+  const planLabels={'1500':'₹1,500/mo','4000':'₹4,000/qt','7500':'₹7,500/hy','14000':'₹14,000/yr'};
+  members.unshift({name:n,email:e,phone:ph,plan:planLabels[pl.value]||'₹1,500/mo',status:'active',joined:'06 Jun 2026'});
+  renderMembers(); closeModal('modal-member');
+  document.getElementById('m-name').value=''; document.getElementById('m-email').value=''; document.getElementById('m-phone').value='';
+  showToast('Member Added', `${n} has been added successfully!`);
+  addActivity('👤', `<strong>${n}</strong> was added as a new member`, 'Just now');
+}
+function toggleMemberStatus(i){ members[i].status = members[i].status==='active'?'inactive':'active'; renderMembers(); showToast('Status Updated',`${members[i].name} is now ${members[i].status}`); }
+function removeMember(i){ deleteTarget={type:'member',idx:i}; document.getElementById('delete-msg').textContent=`Remove ${members[i].name} from members?`; openModal('modal-delete'); }
+
+// ===== PAYMENTS =====
+let payFilter = 'all';
+function renderPayments(){
+  const filtered = payFilter==='all' ? payments : payments.filter(p=>p.status===payFilter);
+  const tb = document.getElementById('payments-table');
+  tb.innerHTML = filtered.map((p,i) => {
+    const statusClasses = {completed:'bg-green-100 text-green-700',pending:'bg-yellow-100 text-yellow-700',overdue:'bg-red-100 text-red-700'};
+    const origIdx = payments.indexOf(p);
+    return `<tr class="hover:bg-gray-50${p.status==='overdue'?' bg-red-50':''}">
+      <td class="px-6 py-4"><p class="text-sm font-medium text-gray-900">${p.name}</p><p class="text-xs text-gray-500">${p.phone}</p></td>
+      <td class="px-6 py-4 text-sm font-medium text-gray-900">${p.amount}</td>
+      <td class="px-6 py-4 text-sm text-gray-600">${p.due}</td>
+      <td class="px-6 py-4 text-sm text-gray-600">${p.paid}</td>
+      <td class="px-6 py-4"><span class="text-xs px-2 py-1 rounded-full font-medium ${statusClasses[p.status]}">${p.status}</span></td>
+      <td class="px-6 py-4">${p.status!=='completed'?`<button onclick="markPaid(${origIdx})" class="text-xs px-3 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700 font-medium">Mark Paid</button>`:'<span class="text-xs text-green-600 font-medium">✓ Paid</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+function filterPayments(f){
+  payFilter=f;
+  document.querySelectorAll('.pay-filter').forEach(b=>{ b.classList.remove('bg-blue-600','text-white'); b.classList.add('bg-white','text-gray-600','border'); });
+  event.target.classList.remove('bg-white','text-gray-600','border'); event.target.classList.add('bg-blue-600','text-white');
+  renderPayments();
+}
+function markPaid(i){
+  payments[i].status='completed'; payments[i].paid='06 Jun 2026';
+  renderPayments(); showToast('Payment Recorded',`${payments[i].name}'s payment marked as completed.`);
+  addActivity('💰', `<strong>${payments[i].name}</strong> payment marked as completed`, 'Just now');
+}
+
+// ===== GYM MODE =====
+function setGymMode(mode){
+  gymMode=mode;
+  const badge=document.getElementById('gym-mode-badge');
+  const desc=document.getElementById('gym-mode-desc');
+  if(mode==='checked-in'){
+    badge.className='px-4 py-2 rounded-full text-sm font-bold bg-green-100 text-green-700'; badge.textContent='CHECKED IN';
+    desc.textContent='Currently: Overdue members are blocked from scanning';
+    document.getElementById('btn-checkin').className='flex-1 py-3 rounded-xl text-sm font-bold bg-green-600 text-white';
+    document.getElementById('btn-checkout').className='flex-1 py-3 rounded-xl text-sm font-bold bg-orange-50 text-orange-700 border-2 border-orange-300 hover:bg-orange-100 transition';
+    showToast('Mode Changed','Gym is now CHECKED IN. Overdue members will be blocked.');
+  } else {
+    badge.className='px-4 py-2 rounded-full text-sm font-bold bg-orange-100 text-orange-700'; badge.textContent='CHECKED OUT';
+    desc.textContent='Currently: All members can scan freely, data logged for report';
+    document.getElementById('btn-checkout').className='flex-1 py-3 rounded-xl text-sm font-bold bg-orange-600 text-white';
+    document.getElementById('btn-checkin').className='flex-1 py-3 rounded-xl text-sm font-bold bg-green-50 text-green-700 border-2 border-green-300 hover:bg-green-100 transition';
+    showToast('Mode Changed','Gym is now CHECKED OUT. All members can scan freely.');
+  }
+}
+
+// ===== RETENTION =====
+let nudgeTarget = '';
+function renderRetention(){
+  const tb=document.getElementById('retention-table');
+  tb.innerHTML = retentionData.map((r,i)=>{
+    const riskClass = {high:'bg-red-100 text-red-700',medium:'bg-yellow-100 text-yellow-700',low:'bg-blue-100 text-blue-700'};
+    return `<tr class="hover:bg-gray-50">
+      <td class="px-6 py-4"><p class="text-sm font-medium text-gray-900">${r.name}</p><p class="text-xs text-gray-500">${r.phone}</p></td>
+      <td class="px-6 py-4 text-sm font-semibold text-gray-900">${r.days} days</td>
+      <td class="px-6 py-4 text-sm text-gray-600">${r.lastSeen}</td>
+      <td class="px-6 py-4"><span class="text-xs px-2 py-1 rounded-full font-medium ${riskClass[r.risk]}">${r.risk}</span></td>
+      <td class="px-6 py-4">${r.nudged?'<span class="text-xs text-green-600 font-medium">✅ Nudge sent</span>':`<button onclick="openNudge(${i})" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition">📱 Send WhatsApp Nudge</button>`}</td>
+    </tr>`;
+  }).join('');
+}
+function openNudge(i){
+  nudgeTarget=i;
+  const name=retentionData[i].name.split(' ')[0];
+  document.getElementById('nudge-name').textContent=retentionData[i].name;
+  document.getElementById('nudge-preview').innerHTML=`"Hey ${name}, haven't seen you at the gym lately! 💪 Here's a free 1-day guest pass for a friend to bring some motivation this week. See you soon!"`;
+  openModal('modal-nudge');
+}
+function confirmNudge(){
+  retentionData[nudgeTarget].nudged=true;
+  closeModal('modal-nudge'); renderRetention();
+  showToast('Nudge Sent',`WhatsApp message sent to ${retentionData[nudgeTarget].name}`);
+}
+
+// ===== PARTNERS =====
+function renderPartners(){
+  const grid=document.getElementById('partners-grid');
+  grid.innerHTML = partners.map((p,i)=>`
+    <div class="bg-white rounded-xl border p-6 hover:shadow-md transition">
+      <div class="flex items-start justify-between mb-3">
+        <div><h3 class="font-semibold text-gray-900 text-lg">${p.name}</h3><span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">${p.cat}</span></div>
+        <div class="text-right"><span class="text-2xl font-bold text-green-600">${p.disc}</span><p class="text-xs text-gray-500">discount</p></div>
+      </div>
+      <p class="text-sm text-gray-600 mb-4">${p.offer}</p>
+      <div class="flex items-center justify-between pt-3 border-t">
+        <p class="text-sm text-gray-500"><span class="font-semibold text-gray-900">${p.redemptions}</span> redemptions</p>
+        <div class="flex gap-2">
+          <span class="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-700">Active</span>
+          <button onclick="removePartner(${i})" class="text-xs px-2 py-1 text-red-600 hover:bg-red-50 rounded">Remove</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function addPartner(){
+  const n=document.getElementById('p-name').value.trim(),o=document.getElementById('p-offer').value.trim(),c=document.getElementById('p-cat').value,d=document.getElementById('p-disc').value.trim()||'10%';
+  if(!n||!o){document.getElementById('p-error').classList.remove('hidden');return;}
+  document.getElementById('p-error').classList.add('hidden');
+  partners.push({name:n,cat:c,offer:o,disc:d,redemptions:0});
+  renderPartners(); closeModal('modal-partner');
+  document.getElementById('p-name').value='';document.getElementById('p-offer').value='';document.getElementById('p-disc').value='';
+  showToast('Partner Added',`${n} has been added as a partner!`);
+}
+function removePartner(i){deleteTarget={type:'partner',idx:i};document.getElementById('delete-msg').textContent=`Remove ${partners[i].name} from partners?`;openModal('modal-delete');}
+
+// ===== POLLS =====
+function renderPolls(){
+  const container=document.getElementById('polls-container');
+  container.innerHTML = polls.map((poll,pi)=>{
+    const totalVotes = poll.opts.reduce((s,o)=>s+o.votes,0);
+    const maxVotes = Math.max(...poll.opts.map(o=>o.votes));
+    return `<div class="bg-white rounded-xl border p-6">
+      <div class="flex items-start justify-between mb-2">
+        <div><div class="flex items-center gap-2"><h3 class="text-lg font-semibold text-gray-900">${poll.q}</h3><span class="text-xs px-2 py-0.5 rounded-full font-medium ${poll.status==='active'?'bg-green-100 text-green-700':'bg-gray-100 text-gray-500'}">${poll.status}</span></div>
+        ${poll.desc?`<p class="text-sm text-gray-500 mt-1">${poll.desc}</p>`:''}</div>
+        <div class="text-right"><p class="text-sm text-gray-400">${totalVotes} votes</p>
+        ${poll.status==='active'?`<button onclick="closePoll(${pi})" class="text-xs text-red-500 hover:text-red-700 mt-1">Close poll</button>`:''}</div>
+      </div>
+      <div class="mt-4 space-y-3">${poll.opts.map((o,oi)=>{
+        const pct = totalVotes?Math.round(o.votes/totalVotes*100):0;
+        const isLeading = o.votes===maxVotes && totalVotes>0;
+        return `<div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-sm ${isLeading?'font-semibold text-gray-900':'text-gray-700'}">${isLeading?'🏆 ':''}${o.text}</span>
+            <span class="text-sm text-gray-500">${o.votes} (${pct}%)</span>
+          </div>
+          <div class="w-full bg-gray-100 rounded-full h-3"><div class="h-3 rounded-full ${isLeading?'bg-blue-600':'bg-blue-200'}" style="width:${pct}%"></div></div>
+        </div>`;}).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+function addPollOption(){
+  const container=document.getElementById('poll-opts');
+  const count=container.children.length+1;
+  if(count>5) return;
+  const inp=document.createElement('input');
+  inp.type='text'; inp.placeholder=`Option ${count}`; inp.className='poll-opt-input w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none';
+  container.appendChild(inp);
+}
+function createPoll(){
+  const q=document.getElementById('pl-q').value.trim(), desc=document.getElementById('pl-desc').value.trim();
+  const opts=[...document.querySelectorAll('.poll-opt-input')].map(i=>i.value.trim()).filter(v=>v);
+  if(!q||opts.length<2){document.getElementById('pl-error').classList.remove('hidden');return;}
+  document.getElementById('pl-error').classList.add('hidden');
+  polls.unshift({q,desc,status:'active',opts:opts.map(t=>({text:t,votes:0}))});
+  renderPolls(); closeModal('modal-poll');
+  document.getElementById('pl-q').value='';document.getElementById('pl-desc').value='';
+  document.getElementById('poll-opts').innerHTML='<input type="text" placeholder="Option 1" class="poll-opt-input w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"><input type="text" placeholder="Option 2" class="poll-opt-input w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">';
+  showToast('Poll Created','Your new poll is now live for members!');
+}
+function closePoll(i){polls[i].status='closed';renderPolls();showToast('Poll Closed','Voting is now closed for this poll.');}
+
+// ===== ANNOUNCEMENTS =====
+function renderAnnouncements(){
+  const list=document.getElementById('announcements-list');
+  list.innerHTML = announcements.map((a,i)=>`
+    <div class="bg-white p-6 rounded-xl border hover:shadow-sm transition slide-in">
+      <div class="flex justify-between items-start">
+        <div><h3 class="font-semibold text-gray-900">${a.title}</h3><p class="text-sm text-gray-500 mt-1">By ${a.author} · ${a.date}</p></div>
+        <button onclick="removeAnnouncement(${i})" class="text-xs px-2 py-1 text-red-500 hover:bg-red-50 rounded">Delete</button>
+      </div>
+      <p class="mt-3 text-gray-700">${a.msg}</p>
+    </div>`).join('');
+}
+function addAnnouncement(){
+  const t=document.getElementById('a-title').value.trim(),m=document.getElementById('a-msg').value.trim(),au=document.getElementById('a-author').value.trim()||'Admin';
+  if(!t||!m){document.getElementById('a-error').classList.remove('hidden');return;}
+  document.getElementById('a-error').classList.add('hidden');
+  announcements.unshift({title:t,author:au,date:'06 Jun 2026',msg:m});
+  renderAnnouncements(); closeModal('modal-announcement');
+  document.getElementById('a-title').value='';document.getElementById('a-msg').value='';
+  showToast('Announcement Posted','Your announcement is now live!');
+  addActivity('📢', `New announcement: <strong>${t}</strong>`, 'Just now');
+}
+function removeAnnouncement(i){deleteTarget={type:'announcement',idx:i};document.getElementById('delete-msg').textContent=`Delete announcement "${announcements[i].title}"?`;openModal('modal-delete');}
+
+// ===== QUERIES =====
+let qFilter='all';
+function renderQueries(){
+  const filtered = qFilter==='all'?queries: qFilter==='open'?queries.filter(q=>!q.resolved):queries.filter(q=>q.resolved);
+  const list=document.getElementById('queries-list');
+  list.innerHTML = filtered.map((q,fi)=>{
+    const origIdx = queries.indexOf(q);
+    return `<div class="bg-white p-6 rounded-xl border hover:shadow-sm transition">
+      <div class="flex items-center gap-2 flex-wrap">
+        <h3 class="font-semibold text-gray-900">${q.q}</h3>
+        <span class="text-xs px-2 py-0.5 rounded-full ${q.vis==='private'?'bg-gray-100 text-gray-600':'bg-blue-100 text-blue-600'}">${q.vis}</span>
+        ${q.resolved?'<span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-600">resolved</span>':'<span class="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-600">open</span>'}
+      </div>
+      <p class="text-sm text-gray-500 mt-1">By ${q.from} · ${q.date}</p>
+      <p class="mt-3 text-gray-700">${q.detail}</p>
+      ${q.replies.length?q.replies.map(r=>`<div class="mt-3 ml-4 pl-4 border-l-2 border-blue-200"><p class="text-sm text-gray-700"><span class="font-medium text-blue-600">You replied:</span> ${r}</p></div>`).join(''):''}
+      <div class="mt-4 flex gap-2">
+        <input type="text" id="reply-${origIdx}" placeholder="Type a reply..." class="flex-1 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+        <button onclick="replyQuery(${origIdx})" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">Reply</button>
+        <button onclick="toggleResolve(${origIdx})" class="px-3 py-2 rounded-lg text-sm font-medium border ${q.resolved?'text-yellow-600 hover:bg-yellow-50':'text-green-600 hover:bg-green-50'} transition">${q.resolved?'Reopen':'Resolve'}</button>
+      </div>
+    </div>`;
+  }).join('');
+  if(!filtered.length) list.innerHTML='<p class="text-center text-gray-400 py-8">No queries found.</p>';
+}
+function filterQueries(f){
+  qFilter=f;
+  document.querySelectorAll('.q-filter').forEach(b=>{b.classList.remove('bg-blue-600','text-white');b.classList.add('bg-white','text-gray-600','border');});
+  event.target.classList.remove('bg-white','text-gray-600','border');event.target.classList.add('bg-blue-600','text-white');
+  renderQueries();
+}
+function replyQuery(i){
+  const input=document.getElementById('reply-'+i);
+  const text=input.value.trim();
+  if(!text)return;
+  queries[i].replies.push(text);
+  input.value='';
+  renderQueries();
+  showToast('Reply Sent',`Your reply to ${queries[i].from} has been posted.`);
+}
+function toggleResolve(i){queries[i].resolved=!queries[i].resolved;renderQueries();showToast('Query Updated',`Query marked as ${queries[i].resolved?'resolved':'open'}`);}
+
+// ===== CLOSURES =====
+function renderClosures(){
+  const tb=document.getElementById('closures-table');
+  tb.innerHTML = closures.map((c,i)=>`
+    <tr class="hover:bg-gray-50">
+      <td class="px-6 py-4 text-sm font-medium text-gray-900">${c.title}</td>
+      <td class="px-6 py-4 text-sm text-gray-600">${formatDate(c.from)}</td>
+      <td class="px-6 py-4 text-sm text-gray-600">${formatDate(c.to)}</td>
+      <td class="px-6 py-4 text-sm text-gray-600">${c.reason}</td>
+      <td class="px-6 py-4 flex gap-2">
+        <button onclick="editClosure(${i})" class="text-xs px-2 py-1 text-blue-600 hover:bg-blue-50 rounded font-medium">Edit</button>
+        <button onclick="deleteClosure(${i})" class="text-xs px-2 py-1 text-red-600 hover:bg-red-50 rounded font-medium">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+function formatDate(d){const dt=new Date(d+'T00:00:00');return dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short'});}
+function openAddClosure(){document.getElementById('closure-modal-title').textContent='Add Closure';document.getElementById('c-title').value='';document.getElementById('c-from').value='';document.getElementById('c-to').value='';document.getElementById('c-reason').value='';document.getElementById('c-edit-idx').value='-1';openModal('modal-closure');}
+function editClosure(i){
+  document.getElementById('closure-modal-title').textContent='Edit Closure';
+  document.getElementById('c-title').value=closures[i].title;document.getElementById('c-from').value=closures[i].from;document.getElementById('c-to').value=closures[i].to;document.getElementById('c-reason').value=closures[i].reason;
+  document.getElementById('c-edit-idx').value=i;openModal('modal-closure');
+}
+function saveClosure(){
+  const t=document.getElementById('c-title').value.trim(),f=document.getElementById('c-from').value,to=document.getElementById('c-to').value,r=document.getElementById('c-reason').value.trim(),idx=parseInt(document.getElementById('c-edit-idx').value);
+  if(!t||!f||!to){document.getElementById('c-error').classList.remove('hidden');return;}
+  document.getElementById('c-error').classList.add('hidden');
+  if(idx>=0){closures[idx]={title:t,from:f,to:to,reason:r};showToast('Closure Updated',`"${t}" has been updated.`);}
+  else{closures.push({title:t,from:f,to:to,reason:r});showToast('Closure Added',`"${t}" has been added to the schedule.`);}
+  renderClosures();closeModal('modal-closure');
+}
+function deleteClosure(i){deleteTarget={type:'closure',idx:i};document.getElementById('delete-msg').textContent=`Delete closure "${closures[i].title}"?`;openModal('modal-delete');}
+
+// ===== CONFIRM DELETE =====
+function confirmDelete(){
+  if(!deleteTarget)return;
+  if(deleteTarget.type==='closure'){closures.splice(deleteTarget.idx,1);renderClosures();}
+  if(deleteTarget.type==='partner'){partners.splice(deleteTarget.idx,1);renderPartners();}
+  if(deleteTarget.type==='member'){const n=members[deleteTarget.idx].name;members.splice(deleteTarget.idx,1);renderMembers();}
+  if(deleteTarget.type==='announcement'){announcements.splice(deleteTarget.idx,1);renderAnnouncements();}
+  closeModal('modal-delete');showToast('Deleted','Item has been removed.');
+  deleteTarget=null;
+}
+
+// ===== ACTIVITY FEED =====
+function addActivity(icon, text, time){
+  const feed=document.getElementById('activity-feed');
+  const div=document.createElement('div');
+  div.className='px-5 py-3 flex items-center gap-3 slide-in';
+  div.innerHTML=`<span class="text-lg">${icon}</span><div><p class="text-sm text-gray-900">${text}</p><p class="text-xs text-gray-400">${time}</p></div>`;
+  feed.insertBefore(div,feed.firstChild);
+  if(feed.children.length>8)feed.removeChild(feed.lastChild);
+}
+
+// ===== SIMULATE LIVE CHECK-IN =====
+function simulateCheckin(){
+  const names=['Arjun Reddy','Meera Joshi','Sanjay Verma','Nisha Sharma','Karthik R.'];
+  const name=names[Math.floor(Math.random()*names.length)];
+  const now=new Date();
+  const time=now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true});
+  showToast(`Ding! ${name} checked in`, `Scanned at ${time} — payment clear ✅`);
+  addActivity('🔔', `<strong>${name}</strong> checked in`, 'Just now');
+  const tb=document.getElementById('checkins-table');
+  const row=document.createElement('tr');
+  row.className='hover:bg-gray-50 slide-in';
+  row.innerHTML=`<td class="px-6 py-3 text-sm font-medium text-gray-900">${name}</td><td class="px-6 py-3 text-sm text-gray-600">98765XXXXX</td><td class="px-6 py-3 text-sm text-gray-600">${time}</td><td class="px-6 py-3"><span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">✅ Clear</span></td>`;
+  tb.insertBefore(row,tb.firstChild);
+}
+setInterval(simulateCheckin, 15000);
+
+// ===== INIT =====
+renderMembers(); renderPayments(); renderRetention(); renderPartners(); renderPolls(); renderAnnouncements(); renderQueries(); renderClosures();
 </script>
 </body>
 </html>
