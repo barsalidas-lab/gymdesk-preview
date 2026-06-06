@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GymDesk - Member App Preview</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f3f4f6; display: flex; justify-content: center; align-items: flex-start; padding: 20px; min-height: 100vh; }
+  .phone { width: 375px; min-height: 720px; background: #fff; border-radius: 32px; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.15); border: 8px solid #1a1a1a; position: relative; }
+  .status-bar { background: #1a1a1a; color: #fff; padding: 8px 20px; font-size: 12px; display: flex; justify-content: space-between; font-weight: 500; }
+  .screen { display: none; padding: 20px; min-height: 580px; overflow-y: auto; background: #f9fafb; }
+  .screen.active { display: block; }
+  .tab-bar { display: flex; justify-content: space-around; background: #fff; border-top: 1px solid #e5e7eb; padding: 8px 0 12px; position: sticky; bottom: 0; }
+  .tab { text-align: center; cursor: pointer; padding: 4px 8px; }
+  .tab .icon { font-size: 18px; margin-bottom: 2px; }
+  .tab .label { font-size: 9px; font-weight: 600; color: #6b7280; }
+  .tab.active .label { color: #2563eb; }
+  .header { text-align: center; padding: 16px 0 12px; }
+  .header h1 { font-size: 18px; font-weight: 700; color: #111; }
+  .card { background: #fff; border-radius: 14px; padding: 18px; margin-bottom: 14px; border: 1px solid #e5e7eb; }
+  .btn { display: block; width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; text-align: center; }
+  .btn-blue { background: #2563eb; color: #fff; }
+  .btn-red { background: #dc2626; color: #fff; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .badge-green { background: #dcfce7; color: #16a34a; }
+  .badge-red { background: #fee2e2; color: #dc2626; }
+  .badge-yellow { background: #fef9c3; color: #a16207; }
+  .badge-blue { background: #dbeafe; color: #1d4ed8; }
+
+  /* Green success screen */
+  .success-screen { background: #16a34a; min-height: 580px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; text-align: center; }
+  .success-screen .emoji { font-size: 64px; margin-bottom: 16px; }
+  .success-screen h2 { font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+
+  /* Red blocked screen */
+  .blocked-screen { background: #dc2626; min-height: 580px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; text-align: center; }
+  .blocked-screen .emoji { font-size: 64px; margin-bottom: 16px; }
+  .blocked-screen h2 { font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+
+  .progress-bar { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin: 8px 0; }
+  .progress-fill { height: 100%; background: #2563eb; border-radius: 4px; }
+
+  .perk-card { background: #fff; border-radius: 14px; padding: 14px; margin-bottom: 10px; border: 1px solid #e5e7eb; }
+  .perk-locked { opacity: 0.5; }
+
+  .vote-option { background: #f9fafb; border-radius: 12px; padding: 12px; margin-bottom: 8px; border: 1px solid #e5e7eb; cursor: pointer; }
+  .vote-option.voted { border-color: #2563eb; background: #eff6ff; }
+  .vote-bar { height: 6px; background: #e5e7eb; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  .vote-fill { height: 100%; border-radius: 3px; }
+  .vote-fill.leading { background: #2563eb; }
+  .vote-fill.normal { background: #93c5fd; }
+
+  .step { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .step-num { width: 24px; height: 24px; border-radius: 12px; background: #eff6ff; color: #2563eb; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+  .announcement { background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 12px; border: 1px solid #e5e7eb; }
+
+  .closure-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f3f4f6; }
+
+  .multi-phone { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; justify-content: center; }
+</style>
+</head>
+<body>
+
+<div class="multi-phone">
+
+<!-- PHONE 1: Main screens -->
+<div>
+  <p style="text-align:center; font-weight:700; color:#374151; margin-bottom:12px; font-size:14px;">Member App — Main Screens</p>
+  <div class="phone">
+    <div class="status-bar"><span>9:41 AM</span><span>GymDesk</span><span>100%</span></div>
+
+    <!-- HOME -->
+    <div id="s-home" class="screen active">
+      <div class="header"><h1>Welcome, Rahul! 👋</h1></div>
+      <div class="card" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: none;">
+        <p style="font-size:13px; opacity:0.8;">Next Payment Due</p>
+        <p style="font-size:28px; font-weight:800; margin: 6px 0;">₹1,500</p>
+        <p style="font-size:13px; opacity:0.8;">Due: 15 June 2026</p>
+        <button class="btn" style="background:rgba(255,255,255,0.2); color:#fff; margin-top:14px;">Pay Now via Razorpay</button>
+      </div>
+      <p style="font-size:14px; font-weight:700; color:#111; margin-bottom:10px;">Payment History</p>
+      <div class="card" style="padding:12px 16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div><p style="font-size:14px; font-weight:600; color:#111;">₹1,500</p><p style="font-size:12px; color:#6b7280;">15 May 2026</p></div>
+          <span class="badge badge-green">Paid</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div><p style="font-size:14px; font-weight:600; color:#111;">₹1,500</p><p style="font-size:12px; color:#6b7280;">15 Apr 2026</p></div>
+          <span class="badge badge-green">Paid</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div><p style="font-size:14px; font-weight:600; color:#111;">₹1,500</p><p style="font-size:12px; color:#6b7280;">15 Mar 2026</p></div>
+          <span class="badge badge-green">Paid</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR CHECK-IN -->
+    <div id="s-qr" class="screen">
+      <div class="header"><h1>Scan to Check In</h1><p style="font-size:13px; color:#6b7280; margin-top:4px;">Scan the QR at the front desk</p></div>
+      <div style="background:#2563eb; border-radius:20px; padding:28px; text-align:center; margin-bottom:18px; box-shadow: 0 8px 24px rgba(37,99,235,0.3);">
+        <div style="font-size:32px; margin-bottom:8px;">📷</div>
+        <p style="font-size:22px; font-weight:800; color:#fff;">Open Scanner</p>
+        <p style="font-size:13px; color:rgba(255,255,255,0.7); margin-top:6px;">Tap to scan front desk QR code</p>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <p style="font-size:14px; font-weight:600; color:#374151;">Attendance Streak</p>
+          <p style="font-size:20px; font-weight:800; color:#111;">12 🔥</p>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:80%"></div></div>
+        <p style="font-size:12px; color:#9ca3af;">3 more days to unlock partner discounts</p>
+      </div>
+      <div class="card">
+        <p style="font-size:14px; font-weight:700; color:#374151; margin-bottom:10px;">How it works</p>
+        <div class="step"><div class="step-num">1</div><p style="font-size:13px; color:#6b7280;">Walk up to the front desk</p></div>
+        <div class="step"><div class="step-num">2</div><p style="font-size:13px; color:#6b7280;">Tap "Open Scanner" above</p></div>
+        <div class="step"><div class="step-num">3</div><p style="font-size:13px; color:#6b7280;">Point at the printed QR standee</p></div>
+        <div class="step"><div class="step-num">4</div><p style="font-size:13px; color:#6b7280;">Green = you're in! Receptionist gets a ping.</p></div>
+      </div>
+    </div>
+
+    <!-- PERKS -->
+    <div id="s-perks" class="screen">
+      <div class="header"><h1>Rewards & Perks</h1></div>
+      <div class="card" style="background:#eff6ff; border-color:#bfdbfe; text-align:center;">
+        <p style="font-size:14px; font-weight:600; color:#1d4ed8; margin-bottom:10px;">Your Referral Code</p>
+        <div style="background:#fff; display:inline-block; padding:10px 24px; border-radius:10px; border:2px dashed #2563eb;">
+          <p style="font-size:20px; font-weight:800; color:#1e40af; letter-spacing:2px;">RAHUL-GYM-2K26</p>
+        </div>
+        <p style="font-size:12px; color:#3b82f6; margin-top:10px;">Share with friends — they sign up, you get 10% off!</p>
+      </div>
+      <p style="font-size:15px; font-weight:700; color:#111; margin-bottom:10px;">Local Partner Perks</p>
+      <div class="perk-card">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div><p style="font-size:15px; font-weight:700; color:#111;">Green Leaf Cafe</p><p style="font-size:12px; color:#6b7280;">Food & Drinks</p></div>
+          <span class="badge badge-green">Unlocked</span>
+        </div>
+        <p style="font-size:14px; color:#16a34a; font-weight:600; margin-top:6px;">10% off smoothies & salads</p>
+        <div style="margin-top:8px; background:#f0fdf4; padding:8px; border-radius:8px; text-align:center;"><p style="font-size:12px; color:#16a34a; font-weight:500;">Show QR at store for discount</p></div>
+      </div>
+      <div class="perk-card">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div><p style="font-size:15px; font-weight:700; color:#111;">SportZone Apparel</p><p style="font-size:12px; color:#6b7280;">Sportswear</p></div>
+          <span class="badge badge-green">Unlocked</span>
+        </div>
+        <p style="font-size:14px; color:#16a34a; font-weight:600; margin-top:6px;">15% off gym wear</p>
+      </div>
+      <div class="perk-card perk-locked">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div><p style="font-size:15px; font-weight:700; color:#111;">PhysioFlex Clinic</p><p style="font-size:12px; color:#6b7280;">Health</p></div>
+          <span class="badge" style="background:#f3f4f6; color:#6b7280;">🔒 Locked</span>
+        </div>
+        <p style="font-size:14px; color:#6b7280; font-weight:600; margin-top:6px;">Free first consultation</p>
+      </div>
+    </div>
+
+    <!-- VOTE -->
+    <div id="s-vote" class="screen">
+      <div class="header"><h1>Gym Wishlist 🗳️</h1><p style="font-size:13px; color:#6b7280; margin-top:4px;">Vote on what matters to you</p></div>
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+          <p style="font-size:15px; font-weight:700; color:#111; flex:1; margin-right:8px;">Which equipment should we buy next?</p>
+          <span class="badge badge-green">Active</span>
+        </div>
+        <p style="font-size:13px; color:#6b7280; margin-bottom:12px;">Budget: ₹80,000</p>
+        <div class="vote-option"><p style="font-size:14px; font-weight:600; color:#374151;">Leg Press Machine</p><p style="font-size:12px; color:#9ca3af;">Heavy-duty 45-degree</p></div>
+        <div class="vote-option"><p style="font-size:14px; font-weight:600; color:#374151;">Stairmaster</p><p style="font-size:12px; color:#9ca3af;">Commercial stair climber</p></div>
+        <div class="vote-option"><p style="font-size:14px; font-weight:600; color:#374151;">Dumbbell Set (5-50kg)</p><p style="font-size:12px; color:#9ca3af;">Full rubber hex rack</p></div>
+        <p style="font-size:12px; color:#9ca3af; margin-top:10px; text-align:center;">Tap an option to vote · Ends 15 Jun</p>
+      </div>
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+          <p style="font-size:15px; font-weight:700; color:#111;">Preferred new batch timing?</p>
+          <span class="badge badge-green">Active</span>
+        </div>
+        <div class="vote-option voted">
+          <div style="display:flex; justify-content:space-between;"><p style="font-size:14px; font-weight:600; color:#374151;">🏆 6:30 PM - 8:00 PM (Your vote)</p><p style="font-size:14px; font-weight:700; color:#2563eb;">54%</p></div>
+          <div class="vote-bar"><div class="vote-fill leading" style="width:54%"></div></div>
+        </div>
+        <div class="vote-option">
+          <div style="display:flex; justify-content:space-between;"><p style="font-size:14px; color:#6b7280;">5:00 PM - 6:30 PM</p><p style="font-size:14px; color:#6b7280;">28%</p></div>
+          <div class="vote-bar"><div class="vote-fill normal" style="width:28%"></div></div>
+        </div>
+        <div class="vote-option">
+          <div style="display:flex; justify-content:space-between;"><p style="font-size:14px; color:#6b7280;">8:00 PM - 9:30 PM</p><p style="font-size:14px; color:#6b7280;">18%</p></div>
+          <div class="vote-bar"><div class="vote-fill normal" style="width:18%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEWS -->
+    <div id="s-news" class="screen">
+      <div class="header"><h1>Announcements 📢</h1></div>
+      <div class="announcement"><p style="font-size:15px; font-weight:700; color:#111;">New Batch Timings</p><p style="font-size:12px; color:#6b7280; margin:4px 0 8px;">Coach Rajesh · 28 May</p><p style="font-size:14px; color:#374151; line-height:1.5;">Starting June 1st, we are adding a new morning batch from 5:30 AM to 7:00 AM. Register at the front desk if interested.</p></div>
+      <div class="announcement"><p style="font-size:15px; font-weight:700; color:#111;">AC Servicing This Saturday</p><p style="font-size:12px; color:#6b7280; margin:4px 0 8px;">Admin · 25 May</p><p style="font-size:14px; color:#374151; line-height:1.5;">The gym will close at 2 PM on Saturday for AC maintenance. Morning batches will run as usual.</p></div>
+    </div>
+
+    <!-- SCHEDULE -->
+    <div id="s-schedule" class="screen">
+      <div class="header"><h1>Gym Schedule 📅</h1></div>
+      <div class="card">
+        <div class="closure-row"><div><p style="font-size:14px; font-weight:600; color:#111;">Annual Maintenance</p><p style="font-size:12px; color:#6b7280;">Equipment servicing</p></div><div style="text-align:right;"><p style="font-size:13px; color:#374151;">10 - 12 Jul</p></div></div>
+        <div class="closure-row"><div><p style="font-size:14px; font-weight:600; color:#111;">Independence Day</p><p style="font-size:12px; color:#6b7280;">National Holiday</p></div><div style="text-align:right;"><p style="font-size:13px; color:#374151;">15 Aug</p></div></div>
+        <div class="closure-row"><div><p style="font-size:14px; font-weight:600; color:#111;">Diwali Break</p><p style="font-size:12px; color:#6b7280;">Festival holidays</p></div><div style="text-align:right;"><p style="font-size:13px; color:#374151;">20 - 23 Oct</p></div></div>
+        <div class="closure-row" style="border:none;"><div><p style="font-size:14px; font-weight:600; color:#111;">Christmas & New Year</p><p style="font-size:12px; color:#6b7280;">Year-end break</p></div><div style="text-align:right;"><p style="font-size:13px; color:#374151;">25 Dec - 1 Jan</p></div></div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab active" onclick="showTab('home')"><div class="icon">🏠</div><div class="label">Home</div></div>
+      <div class="tab" onclick="showTab('qr')"><div class="icon">📷</div><div class="label">QR</div></div>
+      <div class="tab" onclick="showTab('news')"><div class="icon">📢</div><div class="label">News</div></div>
+      <div class="tab" onclick="showTab('perks')"><div class="icon">🎁</div><div class="label">Perks</div></div>
+      <div class="tab" onclick="showTab('vote')"><div class="icon">🗳️</div><div class="label">Vote</div></div>
+      <div class="tab" onclick="showTab('schedule')"><div class="icon">📅</div><div class="label">Schedule</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PHONE 2: Check-in states -->
+<div>
+  <p style="text-align:center; font-weight:700; color:#374151; margin-bottom:12px; font-size:14px;">QR Check-in — Success State</p>
+  <div class="phone">
+    <div class="status-bar"><span>9:41 AM</span><span>GymDesk</span><span>100%</span></div>
+    <div class="success-screen">
+      <div class="emoji">✅</div>
+      <h2>Checked In!</h2>
+      <p style="font-size:16px; opacity:0.85; margin-bottom:8px;">Welcome! The receptionist has been notified.</p>
+      <p style="font-size:14px; opacity:0.6; margin-bottom:20px;">9:41 AM</p>
+      <div style="background:rgba(255,255,255,0.2); padding:10px 20px; border-radius:20px; margin-bottom:30px;">
+        <p style="font-size:16px; font-weight:700;">12 day streak 🔥</p>
+      </div>
+      <div style="background:rgba(255,255,255,0.25); padding:14px 40px; border-radius:14px;">
+        <p style="font-size:16px; font-weight:700;">Done</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PHONE 3: Blocked state -->
+<div>
+  <p style="text-align:center; font-weight:700; color:#374151; margin-bottom:12px; font-size:14px;">QR Check-in — Blocked State</p>
+  <div class="phone">
+    <div class="status-bar"><span>9:41 AM</span><span>GymDesk</span><span>100%</span></div>
+    <div class="blocked-screen">
+      <div class="emoji">🚫</div>
+      <h2>Entry Blocked</h2>
+      <p style="font-size:22px; font-weight:700; opacity:0.9; margin-bottom:12px;">₹1,500 Overdue</p>
+      <p style="font-size:16px; opacity:0.8; margin-bottom:24px; line-height:1.5; max-width:280px;">Your payment is past the grace period. Please clear your dues to check in.</p>
+      <div style="background:#fff; padding:16px 36px; border-radius:14px; margin-bottom:16px;">
+        <p style="font-size:18px; font-weight:800; color:#dc2626;">Pay Now</p>
+      </div>
+      <p style="opacity:0.7; font-size:16px; cursor:pointer;">Go Back</p>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('s-' + name).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.closest('.tab').classList.add('active');
+}
+</script>
+</body>
+</html>
