@@ -57,7 +57,46 @@
   .pulse { animation:pulse 1.5s ease-in-out infinite; }
   .toast-app { position:absolute; top:48px; left:12px; right:12px; z-index:20; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:12px 16px; box-shadow:0 8px 24px rgba(0,0,0,0.15); display:none; }
   .toast-app.show { display:flex; animation:fadeIn 0.3s ease; }
-  input,textarea,select { font-family:inherit; }
+  input,textarea,select {
+    font-family:inherit;
+    pointer-events: auto !important;
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    -webkit-appearance: none;
+    appearance: none;
+    touch-action: auto;
+  }
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+  }
+  /* Login inputs */
+  #s-login input {
+    background: rgba(255,255,255,0.1) !important;
+    color: #fff !important;
+    border: 2px solid rgba(255,255,255,0.2) !important;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 15px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  #s-login input:focus {
+    border-color: rgba(255,255,255,0.6) !important;
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.1);
+  }
+  /* Query inputs */
+  #s-ask input, #s-ask textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #111;
+    background: #fff;
+    box-sizing: border-box;
+  }
 </style>
 </head>
 <body>
